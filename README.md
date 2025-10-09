@@ -1,2 +1,71 @@
 # EthanLandon
 Team Project for WDD231 - 
+Team Project - part 1
+Time: 2 hours
+
+Introduction
+This project will be completed in a team of 2 students. After forming your team you will be responsible to plan and complete a web application as a showcase that demonstrates your mastery of the topics taught during this course. Your web application can take many different forms, but there is a list of requirements that each app must include:
+
+At least one detailed, validated form
+Local storage for persistence
+Fetching data from an API or json file.
+Drop-down menu
+CSS Animation
+Responsive design
+Good user experience (UX) and accessibility
+URL parameters (data that is passed from page to page in an app through the URL, for example https://example.com/page2.html?id=34 Send the id of 34 to the code running at page2.html)
+Use of modules for organization
+01 Meet your teammate
+After forming your team, spend some time learning a little about each other. Here is a list of questions to get you started:
+
+What is your name?
+Where are you from?
+What are your interests?
+What is your favorite programming language?
+What do you hope to get out of this course?
+What has your experience with teamwork been in the past?
+What are your strengths and weaknesses?
+What can we do to make this team work well?
+What is the best way to communicate with you?
+What are your concerns about this project?
+02 Brainstorm
+Make a list of at least 15 ideas for a web application. The sky is the limit as you make this list. Put anything that comes to mind that sounds interesting. Feel free to leverage generative AI if you are struggling to come up with ideas.
+
+Once you have the initial list it is time to narrow it down. As you review your list keep the following in mind:
+
+Your interests and passions
+The requirements of the project
+Your team’s strengths and weaknesses
+The time it will take to complete the project
+The potential for learning and growth
+The potential for fun and enjoyment
+Data/API availability
+Complexity of the project
+Negotiate with your partner to remove ideas until there is one left. This is the idea you will prepare a proposal for.
+
+03 Setup your environment
+Review the following article and discuss together: Making Teams Work.
+
+Your team should use Github to manage your code. One of the team members should create a new repository and invite the other to it. Then both should clone the project to their computer.
+
+Agree how the team will communicate with each other, and exchange any info required to make that work. Also negotiate how you will manage and assign tasks.
+
+Discuss how you would like to work together. Will you use a peer programming model or work more independently?
+
+04 Prepare your proposal
+After settling on your app idea, your team should prepare a proposal together with the following details:
+
+Project name
+Description of the project
+Target audience
+Features and functionalities
+At least two wireframes for the main page (mobile, wide screen)
+How the project requirements listed below will be met.
+What will the detailed form be used for? What other forms might you need?
+What data would you need to store in Local storage for persistence?
+What data will your app need? Is there an API or will you need to build your own dataset in a json file?
+Where would it make sense to use a drop-down menu or modal?
+Where are opportunities to use CSS Animations?
+05 Submit proposal to ILearn
+Submit your proposal to Ilearn. Both teammates should submit the file.
+
