@@ -1,12 +1,13 @@
+body{
+    margin:0px;
+    padding:0px;
+}
+/* Start of Header */
 header{
     padding:0px;
     margin:0px;
     display:grid;
     grid-template-rows: auto auto;
-}
-body{
-    margin:0px;
-    padding:0px;
 }
 a{
     text-decoration:underline;
@@ -41,11 +42,25 @@ nav{
     display: flex;
     gap:2em;
 }
+/* Start of Main*/
+main{
+    margin-left: 5em;
+    margin-right:5em;
+}
+.page-top-info{
+    text-align:center;
+}
+.page-top-info p{
+    font-size:1.5em;
+}
 
 @media screen and (max-width: 768px) {
   /* Styles applied when the screen width is 768px or more */
     #banner-text{
         font-size:4em;
+    }
+    .page-top-info{
+        font-size:1em;
     }
 
 }
