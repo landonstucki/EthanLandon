@@ -1,0 +1,51 @@
+header{
+    padding:0px;
+    margin:0px;
+    display:grid;
+    grid-template-rows: auto auto;
+}
+body{
+    margin:0px;
+    padding:0px;
+}
+a{
+    text-decoration:underline;
+    color:black;
+    gap:100px;
+}
+a:hover{
+    color:brown;
+}
+#hero-banner, #banner-text{
+    height: 50vh;
+    width: 100vw;
+    margin:0px;
+    padding:0px;
+    grid-area:1/1;
+}
+#banner-text{
+    color:white;
+    font-size:10em;
+    text-align:center;
+    align-content:center;
+}
+nav{
+    justify-content: center;
+    justify-self:center;
+    text-decoration:none;
+    text-decoration-style: none;
+    padding:10px;
+    font-size:1.5em;
+}
+nav{
+    display: flex;
+    gap:2em;
+}
+
+@media screen and (max-width: 768px) {
+  /* Styles applied when the screen width is 768px or more */
+    #banner-text{
+        font-size:4em;
+    }
+
+}
