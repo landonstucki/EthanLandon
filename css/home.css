@@ -66,10 +66,14 @@ main{
     border-radius:10px;
 }
 .right-main{
+    padding:1em;
+    border-style:inset;
     display:grid;
     grid-template-rows:auto auto;
     grid-row:2;
     text-align:center;
+    font-size:1.2em;
+    font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif
 }
 .get-started{
     grid-row:2;
@@ -108,6 +112,9 @@ footer p{
     .video {
     max-width: 80vw;
     height: auto;
+    }
+    .right-main{
+        margin-top:10px;
     }
 
 }
