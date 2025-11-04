@@ -16,8 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Validate required fields
         if (!validateForm(data)) {
             return;
-        }
-        
+        } 
         // Simulate form submission
         submitForm(data);
     });
