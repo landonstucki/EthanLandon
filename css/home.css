@@ -18,7 +18,7 @@ a{
 }
 
 a:hover{
-  color:rgba(88, 53, 1, 0.788);
+  color:rgb(88 53 1 / 78.8%);
 }
 
 #hero-banner, #banner-text{
@@ -27,6 +27,7 @@ a:hover{
   margin:0;
   padding:0;
   grid-area:1/1;
+  color:red;
 }
 
 #banner-text{

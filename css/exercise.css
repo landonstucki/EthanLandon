@@ -31,29 +31,39 @@ h1{
   }
 }
 
-#muscle-groups-selector{
-  grid-row:2;
-  display:grid;
-  grid-template-columns:repeat(4, auto);
+#muscle-groups-selector {
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: repeat(4, auto);
   justify-content: center;
-  gap:10px;
-  grid-template-rows:auto auto auto;
+  gap: 10px;
+  grid-template-rows: auto auto auto;
 }
 
-#muscle-groups-selector button{
-  border-radius:10%;
+#muscle-groups-selector button {
+  border-radius: 10%;
   width: 200px;
-  height:50px;
-  font-size:1em;
+  height: 50px;
+  font-size: 1em;
+
+  /* underline setup */
+  text-decoration: underline transparent 2px; /* invisible underline at rest */
+  text-underline-offset: 4px; /* small gap below the text */
+  transition:
+    color 0.3s ease,
+    background-color 0.3s ease,
+    text-decoration-color 0.3s ease;
 }
 
-#muscle-groups-selector button:hover{
-  cursor:pointer;
-  color:rgba(88, 53, 1, 0.788);
-  background-color:rgba(205, 109, 109, 0.281);
+#muscle-groups-selector button:hover {
+  cursor: pointer;
+  color: rgb(88 53 1 / 78.8%);
+  background-color: rgb(205 109 109 / 28.1%);
+  text-decoration-color: rgb(88 53 1 / 78.8%); /* underline fades in */
 }
 
-#muscle-groups-selector button.clicked{
-  background-color:rgba(68, 142, 68, 0.34);
+#muscle-groups-selector button.clicked {
+  background-color: rgb(68 142 68 / 34%);
+  text-decoration-color: rgb(68 142 68 / 100%); /* keep underline when selected */
 }
 
