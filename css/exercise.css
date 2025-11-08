@@ -75,12 +75,24 @@ h1{
 
   #muscle-groups-selector{
     gap:5px;
+    margin-left:10px;
+    margin-right:10px;
   }
+
 
   #muscle-groups-selector button {
-    width: 100px;
+    width: 80px;
     height: 50px;
-    font-size: 1em
+    font-size: .8em
   }
 
+  #muscle-groups-selector button:hover {
+    all: unset;
+    border-radius: 10%;
+    width: 200px;
+    height: 50px;
+    font-size: 1em;
+    text-decoration: underline transparent 2px;
+    text-underline-offset: 4px;
+  }
 }
