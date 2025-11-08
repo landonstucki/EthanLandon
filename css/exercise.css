@@ -87,12 +87,6 @@ h1{
   }
 
   #muscle-groups-selector button:hover {
-    all: unset;
-    border-radius: 10%;
-    width: 200px;
-    height: 50px;
-    font-size: 1em;
-    text-decoration: underline transparent 2px;
-    text-underline-offset: 4px;
+    background-color: inherit;
   }
 }
