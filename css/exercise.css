@@ -78,6 +78,56 @@ h1{
   color: inherit;
 }
 
+#exercise-results h2 {
+  text-align: center;
+  margin-top: 30px;
+  font-size: 2rem;
+  color: #27ae60;
+}
+
+.exercise-group {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+}
+
+.exercise {
+  background: #f4f4f4;
+  border-radius: 10px;
+  padding: 15px;
+  width: 250px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 10%);
+  position: relative;
+}
+
+.show-instructions {
+  margin-top: 10px;
+  background-color: #27ae60;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: 0.2s ease;
+}
+
+.show-instructions:hover {
+  background-color: #219150;
+}
+
+.instructions {
+  text-align: left;
+  margin-top: 10px;
+  font-size: 0.9rem;
+  background-color: #e8f5e9;
+  padding: 8px;
+  border-radius: 6px;
+}
+
+
 @media (hover:none),screen and (width <= 768px) {
   /* Styles applied when the screen width is 768px or more */
   main{

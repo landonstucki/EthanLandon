@@ -1,40 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebFit - Create an Exercise</title>
-    <link rel="stylesheet" href="css/styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebFit - Create an Exercise</title>
+  <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-    <header>
-    <img id = "hero-banner" alt = "WebFit Main Banner" src = "images/bannerimg.png">
+  <header>
+    <img id="hero-banner" alt="WebFit Main Banner" src="images/bannerimg.png">
     <p id="banner-text">WebFit<br>Exercise</p>
     <nav>
-        <a href = "/home.html">Home</a>
-        <a href = "/exercise.html">Exercise</a>
-        <a href = "/contact.html">Contact</a>
+      <a href="/home.html">Home</a>
+      <a href="/exercise.html">Exercise</a>
+      <a href="/contact.html">Contact</a>
     </nav>
-    </header>
+  </header>
 
-    <main>
-        <div id = muscle-group-full>
-            <h1>Muscle Group Selector</h1>
-            <section id = "muscle-groups-selector">
-                <button class = "abs-selector">Abs</button>
-                <button class = "biceps-selector">Biceps</button>
-                <button class = "triceps-selector">Triceps</button>
-                <button class = "chest-selector">Chest</button>
-                <button class = "traps-selctor">Traps</button>
-                <button class = "shoulders-selector">Shoulders</button>
-                <button class = "legs-selector">Legs</button>
-                <button class = "back-selector">Back</button>
-            </section>
-        </div>
-    </main>
-<footer>
-    <p>&copy WebFit. All Rights Reserved.</p>
-</footer>
+  <main>
+    <div id="muscle-group-full">
+      <h1>Muscle Group Selector</h1>
+      <section id="muscle-groups-selector">
+        <button data-group="Legs">Legs</button>
+        <button data-group="Biceps">Biceps</button>
+        <button data-group="Triceps">Triceps</button>
+        <button data-group="Core">Core</button>
+        <button data-group="Back">Back</button>
+        <button data-group="Chest">Chest</button>
+        <button data-group="Shoulders">Shoulders</button>
+        <button data-group="Traps">Traps</button>
+      </section>
+    </div>
+
+    <section id="exercise-results"></section>
+  </main>
+
+  <footer>
+    <p>&copy; WebFit. All Rights Reserved.</p>
+  </footer>
+
   <script src="js/exercise.js"></script>
 </body>
 </html>
