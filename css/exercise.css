@@ -1,0 +1,59 @@
+main{ /* Reset Grid from Home Page */
+  grid: none;
+}
+
+#muscle-group-full{
+  display:grid;
+  grid-template-rows: auto auto;
+}
+
+h1{
+  text-align:center;
+  font-size: 2.5rem;
+  color: #333;
+  margin-bottom: 20px;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  font-weight: bold;
+  position: relative;
+  z-index: 1;
+  animation: fade-in-up 0.8s ease-out;
+}
+
+@keyframes fade-in-up{
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+#muscle-groups-selector{
+  grid-row:2;
+  display:grid;
+  grid-template-columns:repeat(4, auto);
+  justify-content: center;
+  gap:10px;
+  grid-template-rows:auto auto auto;
+}
+
+#muscle-groups-selector button{
+  border-radius:10%;
+  width: 200px;
+  height:50px;
+  font-size:1em;
+}
+
+#muscle-groups-selector button:hover{
+  cursor:pointer;
+  color:rgba(88, 53, 1, 0.788);
+  background-color:rgba(205, 109, 109, 0.281);
+}
+
+#muscle-groups-selector button.clicked{
+  background-color:rgba(68, 142, 68, 0.34);
+}
+
