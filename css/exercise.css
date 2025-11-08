@@ -55,19 +55,30 @@ h1{
     text-decoration-color 0.3s ease;
 }
 
-#muscle-groups-selector button:hover {
-  cursor: pointer;
-  color: rgb(88 53 1 / 78.8%);
-  background-color: rgb(205 109 109 / 28.1%);
-  text-decoration-color: rgb(88 53 1 / 78.8%); /* underline fades in */
-}
-
 #muscle-groups-selector button.clicked {
   background-color: rgb(68 142 68 / 34%);
   text-decoration-color: rgb(68 142 68 / 100%); /* keep underline when selected */
 }
 
-@media screen and (width <= 768px) {
+@media (width >= 769px){
+  #muscle-groups-selector button:hover {
+    cursor: pointer;
+    color: rgb(88 53 1 / 78.8%);
+    background-color: rgb(225 255 0 / 25%);
+    text-decoration-color: rgb(88 53 1 / 78.8%); /* underline fades in */
+  }
+}
+
+/* Override hover state for click. */ 
+
+#muscle-groups-selector button.clicked,
+#muscle-groups-selector button.clicked:hover {
+  background-color: rgb(68 142 68 / 34%);
+  text-decoration-color: rgb(68 142 68 / 100%);
+  color: inherit;
+}
+
+@media (hover:none),screen and (width <= 768px) {
   /* Styles applied when the screen width is 768px or more */
   main{
     min-height:100%;
@@ -86,7 +97,4 @@ h1{
     font-size: .95em
   }
 
-  #muscle-groups-selector button:hover {
-    background-color: rgb(68 142 68 / 34%);
-  }
 }
