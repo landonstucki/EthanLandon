@@ -100,10 +100,9 @@ buttons.forEach((button) => {
             <h3>${ex.name}</h3>
             ${ex.gifUrl ? `<img src="${ex.gifUrl}" alt="${ex.name}" width="150">` : ""}
             <p><strong>Muscle Group:</strong> ${group}</p>
-            <p><strong>Target Muscle:</strong> ${ex.targetMuscle || "N/A"}</p>
+            <p><strong>Target Muscle:</strong> ${ex.targetMuscles || "N/A"}</p>
             <p><strong>Secondary Muscles:</strong> ${(ex.secondaryMuscles && ex.secondaryMuscles.join(", ")) || "None"}</p>
-            <p><strong>Equipment:</strong> ${ex.equipment || "N/A"}</p>
-            <p><strong>Category:</strong> ${ex.category || "N/A"}</p>
+            <p><strong>Equipment:</strong> ${ex.equipments || "N/A"}</p>
 
             ${ex.instructions && ex.instructions.length ? `
               <button class="show-instructions">Show Instructions</button>
