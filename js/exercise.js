@@ -1,13 +1,22 @@
+// Store fetched exercise data in this variable
+const exerciseData = {
+  cache: {},
+  allExercises: {}
+};
+
+// Get DOM elements
 const buttons = document.querySelectorAll("#muscle-groups-selector button");
 const results = document.getElementById("exercise-results");
 
-// helper delay (to avoid rate-limiting)
+// Safety check - make sure elements exist
+if (!results) {
+  console.error("exercise-results element not found");
+}
+
+// Helper delay to avoid rate-limiting
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-// cache to store previous requests
-const cache = {};
-
-// official muscle identifiers grouped
+// Official muscle identifiers grouped by muscle group
 const muscleGroups = {
   Legs: [
     "quadriceps","quads","hamstrings","glutes","calves","soleus","shins",
@@ -22,11 +31,74 @@ const muscleGroups = {
   Traps: ["traps","trapezius","levator scapulae","sternocleidomastoid"]
 };
 
-// keep track of shown groups
+// Keep track of shown groups
 const loadedGroups = new Set();
+
+// Fetch exercises from API and store in exerciseData
+async function fetchExercisesByMuscle(muscleName) {
+  const formatted = muscleName.toLowerCase().trim().replace(/\s+/g, "%20");
+  const url = `https://www.exercisedb.dev/api/v1/muscles/${formatted}/exercises`;
+
+  if (exerciseData.cache[formatted]) {
+    return exerciseData.cache[formatted];
+  }
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) {
+      return [];
+    }
+
+    const json = await res.json();
+    const exercises = json.success && json.data ? json.data : (Array.isArray(json) ? json : []);
+    
+    exerciseData.cache[formatted] = exercises;
+    return exercises;
+  } catch (err) {
+    console.error(`Error fetching ${muscleName}:`, err);
+    return [];
+  }
+}
+
+// Template function to create exercise card HTML
+function createExerciseCard(exercise, muscleGroup, index) {
+  const hasInstructions = exercise.instructions && exercise.instructions.length > 0;
+  const uniqueId = `${muscleGroup}-${index}`.replace(/\s+/g, '-').toLowerCase();
+  
+  const targetMuscles = Array.isArray(exercise.targetMuscles) 
+    ? exercise.targetMuscles.join(", ") 
+    : exercise.targetMuscles || "N/A";
+  
+  const secondaryMuscles = Array.isArray(exercise.secondaryMuscles) 
+    ? exercise.secondaryMuscles.join(", ") 
+    : "None";
+  
+  const equipment = Array.isArray(exercise.equipments) 
+    ? exercise.equipments.join(", ") 
+    : exercise.equipments || "N/A";
+
+  return `
+    <div class="exercise" data-index="${index}">
+      <h3>${exercise.name || "Unnamed Exercise"}</h3>
+      ${exercise.gifUrl ? `<img src="${exercise.gifUrl}" alt="${exercise.name}" width="150">` : ""}
+      <p><strong>Muscle Group:</strong> ${muscleGroup}</p>
+      <p><strong>Target Muscle:</strong> ${targetMuscles}</p>
+      <p><strong>Secondary Muscles:</strong> ${secondaryMuscles}</p>
+      <p><strong>Equipment:</strong> ${equipment}</p>
+      ${hasInstructions ? `
+        <button class="show-instructions" data-exercise-id="${uniqueId}">Show Instructions</button>
+        <div class="instructions" id="instructions-${uniqueId}" style="display:none;">
+          <ol>${exercise.instructions.map(step => `<li>${step}</li>`).join("")}</ol>
+        </div>
+      ` : ""}
+    </div>
+  `;
+}
 
 buttons.forEach((button) => {
   button.addEventListener("click", async () => {
+    if (!results) return; // Safety check
+    
     const group = button.dataset.group;
     const muscles = muscleGroups[group];
     if (!muscles) return;
@@ -37,6 +109,7 @@ buttons.forEach((button) => {
     // remove section if deselected
     if (!button.classList.contains("clicked")) {
       loadedGroups.delete(group);
+      delete exerciseData.allExercises[group];
       const section = document.getElementById(`section-${group}`);
       if (section) section.remove();
       return;
@@ -55,76 +128,44 @@ buttons.forEach((button) => {
 
     // fetch all sub-muscles
     for (const muscle of muscles) {
-      const formatted = muscle.toLowerCase().trim().replace(/\s+/g, "%20");
-      const url = `https://www.exercisedb.dev/api/v1/muscles/${formatted}/exercises`;
-
-      if (cache[formatted]) {
-        allExercises.push(...cache[formatted]);
-        continue;
+      const exercises = await fetchExercisesByMuscle(muscle);
+      if (exercises && exercises.length > 0) {
+        allExercises.push(...exercises);
       }
-
-      try {
-        const res = await fetch(url);
-        if (!res.ok) {
-          failed.push({ muscle, status: res.status });
-          continue;
-        }
-
-        const json = await res.json();
-        const exercises = Array.isArray(json) ? json : json.data || [];
-        cache[formatted] = exercises;
-        if (exercises.length) allExercises.push(...exercises);
-      } catch (err) {
-        failed.push({ muscle, error: err.message });
-      }
-
       await delay(300); // slow down requests slightly
     }
 
-    // deduplicate by ID + equipment + name
-    const key = (ex) => `${ex.id || ex.name}-${ex.equipment}`;
+    // deduplicate by exerciseId + equipment + name
+    const key = (ex) => `${ex.exerciseId || ex.name}-${Array.isArray(ex.equipments) ? ex.equipments.join(',') : ex.equipments || 'none'}`;
     const unique = Array.from(new Map(allExercises.map(ex => [key(ex), ex])).values());
 
     if (unique.length === 0) {
       groupSection.innerHTML = `<h2>${group}</h2><p>No exercises found.</p>`;
-      console.warn("No results for group:", group, failed);
       return;
     }
 
-    // build cards
+    // Store in exerciseData
+    exerciseData.allExercises[group] = unique;
+
+    // build cards using template
     groupSection.innerHTML = `
       <h2>${group}</h2>
       <div class="exercise-group">
-        ${unique.map((ex, index) => `
-          <div class="exercise" data-index="${index}">
-            <h3>${ex.name}</h3>
-            ${ex.gifUrl ? `<img src="${ex.gifUrl}" alt="${ex.name}" width="150">` : ""}
-            <p><strong>Muscle Group:</strong> ${group}</p>
-            <p><strong>Target Muscle:</strong> ${ex.targetMuscles || "N/A"}</p>
-            <p><strong>Secondary Muscles:</strong> ${(ex.secondaryMuscles && ex.secondaryMuscles.join(", ")) || "None"}</p>
-            <p><strong>Equipment:</strong> ${ex.equipments || "N/A"}</p>
-
-            ${ex.instructions && ex.instructions.length ? `
-              <button class="show-instructions">Show Instructions</button>
-              <div class="instructions" style="display:none;">
-                <ol>${ex.instructions.map(step => `<li>${step}</li>`).join("")}</ol>
-              </div>
-            ` : ""}
-          </div>
-        `).join("")}
+        ${unique.map((ex, index) => createExerciseCard(ex, group, index)).join("")}
       </div>
     `;
 
     // add show/hide toggle functionality
     groupSection.querySelectorAll(".show-instructions").forEach(btn => {
       btn.addEventListener("click", () => {
-        const div = btn.nextElementSibling;
-        const showing = div.style.display === "block";
-        div.style.display = showing ? "none" : "block";
+        const exerciseId = btn.dataset.exerciseId;
+        const instructionsDiv = document.getElementById(`instructions-${exerciseId}`);
+        if (!instructionsDiv) return;
+        
+        const showing = instructionsDiv.style.display === "block";
+        instructionsDiv.style.display = showing ? "none" : "block";
         btn.textContent = showing ? "Show Instructions" : "Hide Instructions";
       });
     });
-
-    if (failed.length) console.warn("Some identifiers failed:", failed);
   });
 });
