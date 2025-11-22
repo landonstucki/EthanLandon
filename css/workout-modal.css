@@ -2,8 +2,7 @@
    GLOBAL OFFSET FOR FIXED BAR
 ============================ */
 body {
-  /* Adjust if your header is taller/shorter */
-  padding-top: 80px;
+  padding-top: 0px;
 }
 
 /* ============================
