@@ -1,6 +1,6 @@
 // ====== "My Workout" bar + How-To modal logic ======
 
-// Storing state locally so navigating away and back doesn't wipe the workout.
+// Local storage key so I know where I'm saving this stuff.
 const LOCAL_STORAGE_KEY = "webfit-workout-state";
 
 // Hooks into the fixed workout bar at the top.
@@ -42,18 +42,15 @@ function toTitleCase(str) {
 }
 
 /**
- * Helper so I don't have to keep rewriting this.
+ * Just a tiny helper so I don't keep repeating this.
  */
 function getCurrentWorkoutTitle() {
   return (workoutNameInput?.value || "My Workout").trim();
 }
 
 /**
- * This builds the query string based on the current workout:
- * - workoutTitle
- * - w1Name, w1Sets, w1Reps, w1Group
- * - w2Name, ...
- * Future me: if I ever add more data, this is where I wire it into the URL.
+ * Build query params for the URL based on whatever is in `selectedWorkouts`.
+ * This is what makes the link shareable.
  */
 function buildWorkoutParams() {
   const params = new URLSearchParams();
@@ -69,15 +66,14 @@ function buildWorkoutParams() {
     params.append(`${key}Sets`, w.sets);
     params.append(`${key}Reps`, w.reps);
     params.append(`${key}Group`, w.muscleGroup);
-    // I'm intentionally not putting gifUrl in the URL to keep it cleaner.
+    // I'm not putting gifUrl here on purpose so the URL doesn't get ridiculous.
   });
 
   return params;
 }
 
 /**
- * Push whatever the current workout state is into the URL.
- * Important: this does NOT reload the page.
+ * Push the workout state into the URL (no page reload).
  */
 function syncUrlToState() {
   const params = buildWorkoutParams();
@@ -87,13 +83,12 @@ function syncUrlToState() {
 }
 
 /**
- * Save the current workout to localStorage so that:
+ * Save the current workout to localStorage so it survives:
  * - going to Home and back
- * - closing/re-opening
- * still keeps everything.
+ * - refreshing the page
+ * - closing and reopening the browser
  */
 function saveWorkoutToLocalStorage() {
-  // If for some reason localStorage isn't available, just skip.
   if (typeof localStorage === "undefined") return;
 
   const payload = {
@@ -109,8 +104,8 @@ function saveWorkoutToLocalStorage() {
 }
 
 /**
- * Helper to keep both URL and localStorage up to date
- * whenever something changes.
+ * Convenience function so I don't forget to keep BOTH
+ * URL and localStorage in sync when the workout changes.
  */
 function persistState() {
   syncUrlToState();
@@ -118,8 +113,7 @@ function persistState() {
 }
 
 /**
- * Shows or hides the entire bar depending on whether I have anything selected.
- * Also resets the expanded/collapsed state when the list goes empty.
+ * Shows/hides the entire bar depending on whether there's anything in it.
  */
 function updateWorkoutBarVisibility() {
   if (selectedWorkouts.length === 0) {
@@ -135,8 +129,8 @@ function updateWorkoutBarVisibility() {
 }
 
 /**
- * Renders the list of workout rows inside the dropdown.
- * Whenever I change selectedWorkouts (add/remove/edit), I call this.
+ * Rebuilds the dropdown content based on the `selectedWorkouts` array.
+ * Anytime I edit/add/remove workouts, I call this.
  */
 function renderWorkoutBar() {
   workoutBarCount.dataset.count = selectedWorkouts.length;
@@ -167,14 +161,13 @@ function renderWorkoutBar() {
   });
 
   updateWorkoutBarVisibility();
-  // Keep URL + localStorage in sync so back/refresh/share all work.
+  // Make sure the link + local storage stay up to date.
   persistState();
 }
 
 /**
- * Adds a new exercise into the custom workout (if it's not already there).
- * Default: 3 sets of 10 reps.
- * The gifUrl comes from the card so the How-To modal can show a demo.
+ * Adds a new exercise from a card into the custom workout bar.
+ * Ignores duplicates (same name + same muscle group).
  */
 function addWorkoutFromCard(exerciseName, muscleGroup, gifUrl) {
   if (!exerciseName) return;
@@ -204,7 +197,7 @@ function addWorkoutFromCard(exerciseName, muscleGroup, gifUrl) {
 }
 
 /**
- * Removes a workout row from the array and updates the UI.
+ * Remove one workout row by id.
  */
 function removeWorkout(id) {
   selectedWorkouts = selectedWorkouts.filter(w => w.id !== id);
@@ -212,7 +205,7 @@ function removeWorkout(id) {
 }
 
 /**
- * Just flips between expanded/collapsed for the dropdown body.
+ * Flip the bar between expanded and collapsed mode.
  */
 function toggleWorkoutBarExpansion() {
   barExpanded = !barExpanded;
@@ -226,9 +219,8 @@ function toggleWorkoutBarExpansion() {
 }
 
 /**
- * Reads whatever is in the query string and tries to rebuild
- * the workout from that. This is what makes "back to this page"
- * and shared links work.
+ * Read the query string and see if a workout was encoded in it.
+ * This is what makes the "shared link" regenerate the workout list.
  */
 function loadWorkoutFromUrl() {
   const params = new URLSearchParams(window.location.search);
@@ -254,7 +246,7 @@ function loadWorkoutFromUrl() {
       name,
       displayName: toTitleCase(name),
       muscleGroup: group,
-      gifUrl: "", // When coming straight from a URL, I don't have the gif yet.
+      gifUrl: "", // For shared links, I'll fetch the gif later if needed.
       sets,
       reps
     });
@@ -264,13 +256,13 @@ function loadWorkoutFromUrl() {
 
   if (restored.length > 0) {
     selectedWorkouts = restored;
-    renderWorkoutBar(); // This also updates localStorage.
+    renderWorkoutBar(); // this also updates localStorage
   }
 }
 
 /**
- * Same idea as URL restore, but from localStorage.
- * This is for "I left and came back to the exercise page" without query params.
+ * Load from localStorage when there's no URL data.
+ * This is mainly for "I left and came back to the Exercise page".
  */
 function loadWorkoutFromLocalStorage() {
   if (typeof localStorage === "undefined") return;
@@ -287,7 +279,6 @@ function loadWorkoutFromLocalStorage() {
     }
 
     if (Array.isArray(workouts) && workouts.length > 0) {
-      // Just trust what I stored, but normalize a bit.
       selectedWorkouts = workouts.map((w, idx) => ({
         id: w.id || `${w.name || "exercise"}-${w.muscleGroup || "Custom"}-${Date.now()}-${idx}`,
         name: w.name || "Exercise",
@@ -306,9 +297,9 @@ function loadWorkoutFromLocalStorage() {
 }
 
 /**
- * Decides how to initialize:
- * 1. If the URL already has workout params → use that.
- * 2. Otherwise, if localStorage has something → use that.
+ * Decide how to initialize the workout state:
+ * 1. If URL already has workout params → use those (shared link scenario).
+ * 2. Otherwise, fall back to localStorage.
  */
 function initWorkoutState() {
   const params = new URLSearchParams(window.location.search);
@@ -325,7 +316,7 @@ function initWorkoutState() {
 
 /**
  * Opens the How-To modal for a given workout.
- * At this point, I expect workout.gifUrl to already be populated.
+ * At this point, I expect workout.gifUrl to be set.
  */
 function openHowToModal(workout) {
   if (!howtoModal || !howtoModalTitle || !howtoModalGif) return;
@@ -342,49 +333,100 @@ function openHowToModal(workout) {
 }
 
 /**
- * This is the "smart" How-To handler:
- * - If I already have a gifUrl, just show it.
- * - If I DON'T (for example, from a shared URL on a new device),
- *   then I use the muscle group + name to fetch exercises from the API
- *   and try to find the matching one to grab its gifUrl.
+ * Helper that tries to find the matching exercise for a workout
+ * by using the group ("Legs") → sub-muscles → API, and then
+ * comparing the names. This is for the "shared link on a fresh device" case.
  *
- * NOTE: This uses `fetchExercisesByMuscle` from exercise.js
- * (which is loaded before this file).
+ * It uses:
+ * - muscleGroups (from exercise.js)
+ * - fetchExercisesByMuscle (from exercise.js)
+ * - delay if available, otherwise a manual sleep
+ */
+async function findExerciseForWorkout(workout) {
+  if (!workout.muscleGroup || typeof muscleGroups === "undefined") {
+    return null;
+  }
+
+  const groupName = workout.muscleGroup;
+  const subMuscles = muscleGroups[groupName];
+
+  if (!Array.isArray(subMuscles) || subMuscles.length === 0) {
+    return null;
+  }
+
+  let allExercises = [];
+
+  // If delay exists from exercise.js, use it. If not, roll my own.
+  const sleep =
+    typeof delay === "function"
+      ? delay
+      : (ms) => new Promise((res) => setTimeout(res, ms));
+
+  // Fetch all exercises for all sub-muscles in this group.
+  for (const muscle of subMuscles) {
+    try {
+      const list = await fetchExercisesByMuscle(muscle);
+      if (Array.isArray(list) && list.length > 0) {
+        allExercises.push(...list);
+      }
+    } catch (err) {
+      console.error("Error fetching exercises for muscle:", muscle, err);
+    }
+    await sleep(150);
+  }
+
+  if (!allExercises.length) {
+    return null;
+  }
+
+  // Optional dedupe like in exercise.js
+  const key = (ex) =>
+    `${ex.exerciseId || ex.name}-${
+      Array.isArray(ex.equipments) ? ex.equipments.join(",") : ex.equipments || "none"
+    }`;
+
+  const unique = Array.from(new Map(allExercises.map((ex) => [key(ex), ex])).values());
+
+  // Try to match by name (case-insensitive).
+  const match = unique.find(
+    (ex) =>
+      ex.name &&
+      ex.name.toLowerCase() === (workout.name || "").toLowerCase()
+  );
+
+  return match || null;
+}
+
+/**
+ * Smart How-To handler:
+ * - If I already have a gifUrl, just open the modal.
+ * - If not, I try to fetch the relevant exercises from the API using:
+ *   group → sub-muscles → exercise list → match by name.
  */
 async function handleHowToClick(workout) {
   if (!workout) return;
 
-  // If I already have a gif for this one, just open the modal.
+  // Easy case: already have a gif.
   if (workout.gifUrl) {
     openHowToModal(workout);
     return;
   }
 
-  // If I don't have a muscle group, there's no way to fetch the correct list.
-  if (!workout.muscleGroup || typeof fetchExercisesByMuscle !== "function") {
-    alert("I couldn't find a demo GIF for this exercise yet.");
-    return;
-  }
-
   try {
-    // Grab all exercises for this muscle group.
-    const exercises = await fetchExercisesByMuscle(workout.muscleGroup);
-    const match = exercises.find(ex =>
-      ex.name &&
-      ex.name.toLowerCase() === workout.name.toLowerCase()
-    );
+    const match = await findExerciseForWorkout(workout);
 
     if (match && match.gifUrl) {
-      // Update in-memory workout and persist so the next time it's instant.
+      // Save it into this workout object.
       workout.gifUrl = match.gifUrl;
 
-      // Also update the same object inside selectedWorkouts.
-      const idx = selectedWorkouts.findIndex(w => w.id === workout.id);
+      // Also save into the main state array so it's instant next time.
+      const idx = selectedWorkouts.findIndex((w) => w.id === workout.id);
       if (idx !== -1) {
         selectedWorkouts[idx].gifUrl = match.gifUrl;
       }
 
-      saveWorkoutToLocalStorage(); // No need to rewrite URL just for the gif.
+      // No need to change the URL here; just remember it locally.
+      saveWorkoutToLocalStorage();
       openHowToModal(workout);
     } else {
       alert("I couldn't find a demo GIF for this exercise yet.");
@@ -396,7 +438,7 @@ async function handleHowToClick(workout) {
 }
 
 /**
- * Closes the How-To modal and clears the image source so it stops loading.
+ * Close the How-To modal and clear out the gif source.
  */
 function closeHowToModal() {
   if (!howtoModal) return;
@@ -406,13 +448,12 @@ function closeHowToModal() {
   }
 }
 
-// === Kick things off by checking URL/localStorage ===
+// === Bootstrapping: first see if URL has data, else use localStorage ===
 initWorkoutState();
 
 // === Event listeners ===
 
-// If I click an "Add Workout" button on any exercise card,
-// grab its data attributes and push that into the workout bar.
+// Add Workout from exercise cards
 if (resultsContainer) {
   resultsContainer.addEventListener("click", (e) => {
     const btn = e.target.closest(".add-workout-btn");
@@ -426,7 +467,7 @@ if (resultsContainer) {
   });
 }
 
-// Clicking the header toggles the dropdown, unless I'm actually editing the name.
+// Click header to expand/collapse (but don't toggle when editing the name).
 if (workoutBarToggle) {
   workoutBarToggle.addEventListener("click", (e) => {
     if (!selectedWorkouts.length) return;
@@ -435,19 +476,19 @@ if (workoutBarToggle) {
   });
 }
 
-// Make sure clicks inside the name input don't accidentally toggle the dropdown.
+// Let me click into the name input without collapsing/expanding the bar.
 if (workoutNameInput) {
   workoutNameInput.addEventListener("click", (e) => {
     e.stopPropagation();
   });
 
-  // Anytime I rename the workout, push that straight into URL + localStorage.
+  // If I rename the workout, sync everything.
   workoutNameInput.addEventListener("input", () => {
     persistState();
   });
 }
 
-// Inside the dropdown: Remove buttons, How-To buttons, and sets/reps inputs.
+// Stuff that happens inside the dropdown rows: remove, How-To, sets, reps.
 if (workoutBarContent) {
   workoutBarContent.addEventListener("click", (e) => {
     const row = e.target.closest(".workout-row");
@@ -462,14 +503,12 @@ if (workoutBarContent) {
 
     if (e.target.classList.contains("howto-btn")) {
       if (workout) {
-        // Let the smart handler deal with gif fetching and modal.
         handleHowToClick(workout);
       }
       return;
     }
   });
 
-  // When sets or reps change, update that in the object and resync state.
   workoutBarContent.addEventListener("input", (e) => {
     const row = e.target.closest(".workout-row");
     if (!row) return;
@@ -493,7 +532,7 @@ if (workoutBarContent) {
   });
 }
 
-// Button that copies the fully-encoded URL so I (or friends) can reuse the workout.
+// Button at bottom that copies the full URL (with encoded workout) to clipboard.
 if (copyShareBtn) {
   copyShareBtn.addEventListener("click", async () => {
     if (!selectedWorkouts.length) {
