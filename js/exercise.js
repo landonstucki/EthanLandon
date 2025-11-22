@@ -1,22 +1,26 @@
-// Store fetched exercise data in this variable
+// This is my global stash for exercise data.
+// - `cache` = responses I've already fetched by muscle so I don't spam the API.
+// - `allExercises` = everything I've pulled, organized by the big muscle groups (Legs, Biceps, etc.).
 const exerciseData = {
   cache: {},
   allExercises: {}
 };
 
-// Get DOM elements
+// Buttons for each major muscle group and the main results area.
 const buttons = document.querySelectorAll("#muscle-groups-selector button");
 const results = document.getElementById("exercise-results");
 
-// Safety check - make sure elements exist
+// If this ever logs, something is wrong with the HTML ID.
 if (!results) {
   console.error("exercise-results element not found");
 }
 
-// Helper delay to avoid rate-limiting
+// Tiny helper so I can slow down the API calls a bit.
+// (This is me trying to be nice to the API.)
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-// Official muscle identifiers grouped by muscle group
+// These are the labels I'm using in the UI mapped to actual muscle names
+// that the ExerciseDB API understands. If I ever add new buttons, update here.
 const muscleGroups = {
   Legs: [
     "quadriceps","quads","hamstrings","glutes","calves","soleus","shins",
@@ -31,14 +35,21 @@ const muscleGroups = {
   Traps: ["traps","trapezius","levator scapulae","sternocleidomastoid"]
 };
 
-// Keep track of shown groups
+// Just keeping track of what sections are currently visible.
 const loadedGroups = new Set();
 
-// Fetch exercises from API and store in exerciseData
+/**
+ * Pulls exercises for a single muscle from the API.
+ * Future me: this handles:
+ *  - formatting the muscle name for the URL
+ *  - basic error handling
+ *  - caching so the same muscle isn't fetched over and over
+ */
 async function fetchExercisesByMuscle(muscleName) {
   const formatted = muscleName.toLowerCase().trim().replace(/\s+/g, "%20");
   const url = `https://www.exercisedb.dev/api/v1/muscles/${formatted}/exercises`;
 
+  // If I've already seen this muscle, just reuse the cached result.
   if (exerciseData.cache[formatted]) {
     return exerciseData.cache[formatted];
   }
@@ -46,10 +57,14 @@ async function fetchExercisesByMuscle(muscleName) {
   try {
     const res = await fetch(url);
     if (!res.ok) {
+      // If the API complains, just return an empty list and move on.
       return [];
     }
 
     const json = await res.json();
+
+    // The API can respond in a couple of shapes.
+    // This line tries to gracefully handle both.
     const exercises = json.success && json.data ? json.data : (Array.isArray(json) ? json : []);
     
     exerciseData.cache[formatted] = exercises;
@@ -60,7 +75,10 @@ async function fetchExercisesByMuscle(muscleName) {
   }
 }
 
-// Template function to create exercise card HTML
+/**
+ * Builds the HTML string for one exercise card.
+ * I'm not touching the DOM here; this is just assembling markup.
+ */
 function createExerciseCard(exercise, muscleGroup, index) {
   const hasInstructions = exercise.instructions && exercise.instructions.length > 0;
   const uniqueId = `${muscleGroup}-${index}`.replace(/\s+/g, '-').toLowerCase();
@@ -77,16 +95,35 @@ function createExerciseCard(exercise, muscleGroup, index) {
     ? exercise.equipments.join(", ") 
     : exercise.equipments || "N/A";
 
+  const gifUrl = exercise.gifUrl || "";
+
   return `
     <div class="exercise" data-index="${index}">
       <h3>${exercise.name || "Unnamed Exercise"}</h3>
-      ${exercise.gifUrl ? `<img src="${exercise.gifUrl}" alt="${exercise.name}" width="150">` : ""}
+      ${gifUrl ? `<img src="${gifUrl}" alt="${exercise.name}" width="150">` : ""}
       <p><strong>Muscle Group:</strong> ${muscleGroup}</p>
       <p><strong>Target Muscle:</strong> ${targetMuscles}</p>
       <p><strong>Secondary Muscles:</strong> ${secondaryMuscles}</p>
       <p><strong>Equipment:</strong> ${equipment}</p>
       ${hasInstructions ? `
-        <button class="show-instructions" data-exercise-id="${uniqueId}">Show Instructions</button>
+        <button 
+          class="show-instructions" 
+          data-exercise-id="${uniqueId}"
+          type="button"
+        >
+          Show Instructions
+        </button>
+
+        <button 
+          class="add-workout-btn" 
+          data-exercise-name="${exercise.name || ""}"
+          data-muscle-group="${muscleGroup}"
+          data-exercise-gif="${gifUrl}"
+          type="button"
+        >
+          Add Workout
+        </button>
+
         <div class="instructions" id="instructions-${uniqueId}" style="display:none;">
           <ol>${exercise.instructions.map(step => `<li>${step}</li>`).join("")}</ol>
         </div>
@@ -95,18 +132,19 @@ function createExerciseCard(exercise, muscleGroup, index) {
   `;
 }
 
+// Wiring up all of the top muscle group buttons.
 buttons.forEach((button) => {
   button.addEventListener("click", async () => {
-    if (!results) return; // Safety check
+    if (!results) return; 
     
     const group = button.dataset.group;
     const muscles = muscleGroups[group];
     if (!muscles) return;
 
-    // toggle styling
+    // Visual toggle for the button itself so I can see what's active.
     button.classList.toggle("clicked");
 
-    // remove section if deselected
+    // If I'm turning a group off, kill its entire section and clean up state.
     if (!button.classList.contains("clicked")) {
       loadedGroups.delete(group);
       delete exerciseData.allExercises[group];
@@ -117,26 +155,30 @@ buttons.forEach((button) => {
 
     loadedGroups.add(group);
 
-    // create section for this group
+    // Create a temporary "loading" section for this group.
     const groupSection = document.createElement("div");
     groupSection.id = `section-${group}`;
     groupSection.innerHTML = `<h2>${group}</h2><p>Loading ${group} exercises…</p>`;
     results.appendChild(groupSection);
 
     const allExercises = [];
-    const failed = [];
 
-    // fetch all sub-muscles
+    // For each muscle under this group, fetch its exercises.
+    // This will probably pull duplicates; I de-dupe later.
     for (const muscle of muscles) {
       const exercises = await fetchExercisesByMuscle(muscle);
       if (exercises && exercises.length > 0) {
         allExercises.push(...exercises);
       }
-      await delay(300); // slow down requests slightly
+      // Friendly pause so I don't hammer the API with 10 requests instantly.
+      await delay(300);
     }
 
-    // deduplicate by exerciseId + equipment + name
-    const key = (ex) => `${ex.exerciseId || ex.name}-${Array.isArray(ex.equipments) ? ex.equipments.join(',') : ex.equipments || 'none'}`;
+    // Here I'm deduping exercises. The same move might appear under multiple
+    // muscles, so I use this combo key to treat those as the same.
+    const key = (ex) =>
+      `${ex.exerciseId || ex.name}-${Array.isArray(ex.equipments) ? ex.equipments.join(',') : ex.equipments || 'none'}`;
+
     const unique = Array.from(new Map(allExercises.map(ex => [key(ex), ex])).values());
 
     if (unique.length === 0) {
@@ -144,10 +186,10 @@ buttons.forEach((button) => {
       return;
     }
 
-    // Store in exerciseData
+    // Keeping around the cleaned-up list in case I want it later.
     exerciseData.allExercises[group] = unique;
 
-    // build cards using template
+    // Replace the "Loading..." message with the actual cards.
     groupSection.innerHTML = `
       <h2>${group}</h2>
       <div class="exercise-group">
@@ -155,10 +197,12 @@ buttons.forEach((button) => {
       </div>
     `;
 
-    // add show/hide toggle functionality
+    // Hook up the Show/Hide Instructions buttons inside this group.
     groupSection.querySelectorAll(".show-instructions").forEach(btn => {
       btn.addEventListener("click", () => {
         const exerciseId = btn.dataset.exerciseId;
+        if (!exerciseId) return;
+
         const instructionsDiv = document.getElementById(`instructions-${exerciseId}`);
         if (!instructionsDiv) return;
         

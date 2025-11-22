@@ -5,8 +5,53 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WebFit - Create an Exercise</title>
   <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/workout-modal.css">
 </head>
 <body>
+  <!-- Fixed Workout Bar (hidden by default until a workout is added) -->
+  <div id="workout-bar" class="workout-bar hidden">
+    <div class="workout-bar-header" id="workout-bar-toggle">
+      <div class="workout-bar-title-wrapper">
+        <input
+          id="workout-name-input"
+          type="text"
+          value="My Workout"
+          aria-label="Workout name"
+        />
+        <span id="workout-bar-count" data-count="0">(0)</span>
+      </div>
+      <span class="workout-bar-chevron">▼</span>
+    </div>
+
+    <!-- Everything below is part of the dropdown body -->
+    <div id="workout-bar-body" class="workout-bar-body">
+      <div id="workout-bar-content" class="workout-bar-content"></div>
+
+      <div id="workout-share-output" class="workout-share-output">
+        <button id="copy-share-btn" class="copy-share-btn" type="button">
+          Copy and share this workout with your friends
+        </button>
+        <p id="share-confirm" class="share-confirm hidden">Link copied to clipboard!</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- How-To Modal (for added workouts) -->
+  <div id="howto-modal" class="howto-modal hidden">
+    <div class="howto-modal-content">
+      <button
+        type="button"
+        id="howto-modal-close"
+        class="howto-modal-close"
+        aria-label="Close How-To"
+      >
+        &times;
+      </button>
+      <h2 id="howto-modal-title"></h2>
+      <img id="howto-modal-gif" alt="Exercise how-to">
+    </div>
+  </div>
+
   <header>
     <img id="hero-banner" alt="WebFit Main Banner" src="images/bannerimg.png">
     <p id="banner-text">WebFit<br>Exercise</p>
@@ -40,5 +85,6 @@
   </footer>
 
   <script src="js/exercise.js"></script>
+  <script src="js/workout-form.js"></script>
 </body>
 </html>
