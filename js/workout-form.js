@@ -1,5 +1,8 @@
 // ====== "My Workout" bar + How-To modal logic ======
 
+// Storing state locally so navigating away and back doesn't wipe the workout.
+const LOCAL_STORAGE_KEY = "webfit-workout-state";
+
 // Hooks into the fixed workout bar at the top.
 const workoutBar = document.getElementById("workout-bar");
 const workoutBarToggle = document.getElementById("workout-bar-toggle");
@@ -39,6 +42,13 @@ function toTitleCase(str) {
 }
 
 /**
+ * Helper so I don't have to keep rewriting this.
+ */
+function getCurrentWorkoutTitle() {
+  return (workoutNameInput?.value || "My Workout").trim();
+}
+
+/**
  * This builds the query string based on the current workout:
  * - workoutTitle
  * - w1Name, w1Sets, w1Reps, w1Group
@@ -48,7 +58,7 @@ function toTitleCase(str) {
 function buildWorkoutParams() {
   const params = new URLSearchParams();
 
-  const workoutTitle = (workoutNameInput?.value || "My Workout").trim();
+  const workoutTitle = getCurrentWorkoutTitle();
   if (workoutTitle) {
     params.append("workoutTitle", workoutTitle);
   }
@@ -74,6 +84,37 @@ function syncUrlToState() {
   const query = params.toString();
   const newUrl = window.location.pathname + (query ? `?${query}` : "");
   history.replaceState(null, "", newUrl);
+}
+
+/**
+ * Save the current workout to localStorage so that:
+ * - going to Home and back
+ * - closing/re-opening
+ * still keeps everything.
+ */
+function saveWorkoutToLocalStorage() {
+  // If for some reason localStorage isn't available, just skip.
+  if (typeof localStorage === "undefined") return;
+
+  const payload = {
+    workoutTitle: getCurrentWorkoutTitle(),
+    workouts: selectedWorkouts
+  };
+
+  try {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(payload));
+  } catch (err) {
+    console.error("Failed to save workout to localStorage:", err);
+  }
+}
+
+/**
+ * Helper to keep both URL and localStorage up to date
+ * whenever something changes.
+ */
+function persistState() {
+  syncUrlToState();
+  saveWorkoutToLocalStorage();
 }
 
 /**
@@ -126,8 +167,8 @@ function renderWorkoutBar() {
   });
 
   updateWorkoutBarVisibility();
-  // Keep the URL in sync so back/refresh/share all work.
-  syncUrlToState();
+  // Keep URL + localStorage in sync so back/refresh/share all work.
+  persistState();
 }
 
 /**
@@ -223,19 +264,74 @@ function loadWorkoutFromUrl() {
 
   if (restored.length > 0) {
     selectedWorkouts = restored;
-    renderWorkoutBar();
+    renderWorkoutBar(); // This also updates localStorage.
+  }
+}
+
+/**
+ * Same idea as URL restore, but from localStorage.
+ * This is for "I left and came back to the exercise page" without query params.
+ */
+function loadWorkoutFromLocalStorage() {
+  if (typeof localStorage === "undefined") return;
+
+  const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
+  if (!raw) return;
+
+  try {
+    const data = JSON.parse(raw);
+    const { workoutTitle, workouts } = data || {};
+
+    if (workoutTitle && workoutNameInput) {
+      workoutNameInput.value = workoutTitle;
+    }
+
+    if (Array.isArray(workouts) && workouts.length > 0) {
+      // Just trust what I stored, but normalize a bit.
+      selectedWorkouts = workouts.map((w, idx) => ({
+        id: w.id || `${w.name || "exercise"}-${w.muscleGroup || "Custom"}-${Date.now()}-${idx}`,
+        name: w.name || "Exercise",
+        displayName: w.displayName || toTitleCase(w.name || "Exercise"),
+        muscleGroup: w.muscleGroup || "Custom",
+        gifUrl: w.gifUrl || "",
+        sets: Number.isFinite(w.sets) ? w.sets : 3,
+        reps: Number.isFinite(w.reps) ? w.reps : 10
+      }));
+
+      renderWorkoutBar();
+    }
+  } catch (err) {
+    console.error("Failed to load workout from localStorage:", err);
+  }
+}
+
+/**
+ * Decides how to initialize:
+ * 1. If the URL already has workout params → use that.
+ * 2. Otherwise, if localStorage has something → use that.
+ */
+function initWorkoutState() {
+  const params = new URLSearchParams(window.location.search);
+  const hasWorkoutParams =
+    params.has("workoutTitle") ||
+    params.has("w1Name");
+
+  if (hasWorkoutParams) {
+    loadWorkoutFromUrl();
+  } else {
+    loadWorkoutFromLocalStorage();
   }
 }
 
 /**
  * Opens the How-To modal for a given workout.
- * If there's no gifUrl stored for it, I just show a quick alert instead.
+ * At this point, I expect workout.gifUrl to already be populated.
  */
 function openHowToModal(workout) {
   if (!howtoModal || !howtoModalTitle || !howtoModalGif) return;
 
   if (!workout.gifUrl) {
-    alert("No how-to GIF is available for this exercise yet.");
+    alert("I couldn't find a demo GIF for this exercise yet.");
     return;
   }
 
@@ -243,6 +339,60 @@ function openHowToModal(workout) {
   howtoModalGif.src = workout.gifUrl;
   howtoModalGif.alt = workout.displayName || "Exercise how-to";
   howtoModal.classList.remove("hidden");
+}
+
+/**
+ * This is the "smart" How-To handler:
+ * - If I already have a gifUrl, just show it.
+ * - If I DON'T (for example, from a shared URL on a new device),
+ *   then I use the muscle group + name to fetch exercises from the API
+ *   and try to find the matching one to grab its gifUrl.
+ *
+ * NOTE: This uses `fetchExercisesByMuscle` from exercise.js
+ * (which is loaded before this file).
+ */
+async function handleHowToClick(workout) {
+  if (!workout) return;
+
+  // If I already have a gif for this one, just open the modal.
+  if (workout.gifUrl) {
+    openHowToModal(workout);
+    return;
+  }
+
+  // If I don't have a muscle group, there's no way to fetch the correct list.
+  if (!workout.muscleGroup || typeof fetchExercisesByMuscle !== "function") {
+    alert("I couldn't find a demo GIF for this exercise yet.");
+    return;
+  }
+
+  try {
+    // Grab all exercises for this muscle group.
+    const exercises = await fetchExercisesByMuscle(workout.muscleGroup);
+    const match = exercises.find(ex =>
+      ex.name &&
+      ex.name.toLowerCase() === workout.name.toLowerCase()
+    );
+
+    if (match && match.gifUrl) {
+      // Update in-memory workout and persist so the next time it's instant.
+      workout.gifUrl = match.gifUrl;
+
+      // Also update the same object inside selectedWorkouts.
+      const idx = selectedWorkouts.findIndex(w => w.id === workout.id);
+      if (idx !== -1) {
+        selectedWorkouts[idx].gifUrl = match.gifUrl;
+      }
+
+      saveWorkoutToLocalStorage(); // No need to rewrite URL just for the gif.
+      openHowToModal(workout);
+    } else {
+      alert("I couldn't find a demo GIF for this exercise yet.");
+    }
+  } catch (err) {
+    console.error("Error trying to fetch gif for How-To:", err);
+    alert("Something went wrong while loading the demo for this exercise.");
+  }
 }
 
 /**
@@ -256,8 +406,8 @@ function closeHowToModal() {
   }
 }
 
-// === Kick things off by seeing if the URL already has a workout stored ===
-loadWorkoutFromUrl();
+// === Kick things off by checking URL/localStorage ===
+initWorkoutState();
 
 // === Event listeners ===
 
@@ -291,9 +441,9 @@ if (workoutNameInput) {
     e.stopPropagation();
   });
 
-  // Anytime I rename the workout, push that straight into the URL.
+  // Anytime I rename the workout, push that straight into URL + localStorage.
   workoutNameInput.addEventListener("input", () => {
-    syncUrlToState();
+    persistState();
   });
 }
 
@@ -312,13 +462,14 @@ if (workoutBarContent) {
 
     if (e.target.classList.contains("howto-btn")) {
       if (workout) {
-        openHowToModal(workout);
+        // Let the smart handler deal with gif fetching and modal.
+        handleHowToClick(workout);
       }
       return;
     }
   });
 
-  // When sets or reps change, update that in the object and resync the URL.
+  // When sets or reps change, update that in the object and resync state.
   workoutBarContent.addEventListener("input", (e) => {
     const row = e.target.closest(".workout-row");
     if (!row) return;
@@ -330,14 +481,14 @@ if (workoutBarContent) {
       const val = parseInt(e.target.value, 10);
       workout.sets = isNaN(val) || val < 1 ? 1 : val;
       e.target.value = workout.sets;
-      syncUrlToState();
+      persistState();
     }
 
     if (e.target.classList.contains("workout-reps")) {
       const val = parseInt(e.target.value, 10);
       workout.reps = isNaN(val) || val < 1 ? 1 : val;
       e.target.value = workout.reps;
-      syncUrlToState();
+      persistState();
     }
   });
 }
