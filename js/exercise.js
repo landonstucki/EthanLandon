@@ -47,7 +47,7 @@ const loadedGroups = new Set();
  */
 async function fetchExercisesByMuscle(muscleName) {
   const formatted = muscleName.toLowerCase().trim().replace(/\s+/g, "%20");
-  const url = `https://www.exercisedb.dev/api/v1/muscles/${formatted}/exercises`;
+  const url = `https://www.exercisedb.dev/api/v1/muscles/${formatted}/exercises?offset=0&limit=100&includeSecondary=false`;
 
   // If I've already seen this muscle, just reuse the cached result.
   if (exerciseData.cache[formatted]) {
