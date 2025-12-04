@@ -6,6 +6,9 @@ const exerciseData = {
   allExercises: {}
 };
 
+// Equipment filter state
+let selectedEquipment = new Set();
+
 // Buttons for each major muscle group and the main results area.
 const buttons = document.querySelectorAll("#muscle-groups-selector button");
 const results = document.getElementById("exercise-results");
@@ -189,11 +192,19 @@ buttons.forEach((button) => {
     // Keeping around the cleaned-up list in case I want it later.
     exerciseData.allExercises[group] = unique;
 
+    // Apply equipment filter if active
+    const filteredExercises = filterByEquipment(unique);
+
+    if (filteredExercises.length === 0) {
+      groupSection.innerHTML = `<h2>${group}</h2><p>No exercises found with selected equipment.</p>`;
+      return;
+    }
+
     // Replace the "Loading..." message with the actual cards.
     groupSection.innerHTML = `
       <h2>${group}</h2>
       <div class="exercise-group">
-        ${unique.map((ex, index) => createExerciseCard(ex, group, index)).join("")}
+        ${filteredExercises.map((ex, index) => createExerciseCard(ex, group, index)).join("")}
       </div>
     `;
 
@@ -213,3 +224,204 @@ buttons.forEach((button) => {
     });
   });
 });
+
+// ============================
+// EQUIPMENT FILTER FUNCTIONALITY
+// ============================
+
+const equipmentList = [
+  "stepmill machine", "elliptical machine", "trap bar", "tire", "stationary bike",
+  "wheel roller", "smith machine", "hammer", "skierg machine", "roller",
+  "resistance band", "bosu ball", "weighted", "olympic barbell", "kettlebell",
+  "upper body ergometer", "sled machine", "ez barbell", "dumbbell", "rope",
+  "barbell", "band", "stability ball", "medicine ball", "assisted",
+  "leverage machine", "cable", "body weight"
+];
+
+const filterBtn = document.getElementById("filter-btn");
+const filterModal = document.getElementById("equipment-filter-modal");
+const filterClose = document.getElementById("equipment-filter-close");
+const equipmentGrid = document.getElementById("equipment-grid");
+const applyFiltersBtn = document.getElementById("apply-filters-btn");
+const clearFiltersBtn = document.getElementById("clear-filters-btn");
+const filterCount = document.getElementById("filter-count");
+const filterSelectedCount = document.getElementById("filter-selected-count");
+
+/**
+ * Filter exercises by selected equipment
+ */
+function filterByEquipment(exercises) {
+  if (selectedEquipment.size === 0) {
+    return exercises;
+  }
+
+  return exercises.filter(exercise => {
+    const exerciseEquipment = Array.isArray(exercise.equipments) 
+      ? exercise.equipments 
+      : [exercise.equipments || 'body weight'];
+    
+    return exerciseEquipment.some(eq => 
+      selectedEquipment.has((eq || '').toLowerCase().trim())
+    );
+  });
+}
+
+/**
+ * Format equipment name to Title Case
+ */
+function formatEquipmentName(equipment) {
+  return equipment.split(' ').map(word => 
+    word.charAt(0).toUpperCase() + word.slice(1)
+  ).join(' ');
+}
+
+/**
+ * Initialize equipment filter modal
+ */
+function initEquipmentFilter() {
+  // Populate equipment grid
+  equipmentList.sort().forEach(equipment => {
+    const item = document.createElement('div');
+    item.className = 'equipment-item';
+    
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.id = `eq-${equipment.replace(/\s+/g, '-')}`;
+    checkbox.value = equipment;
+    
+    const label = document.createElement('label');
+    label.htmlFor = checkbox.id;
+    label.textContent = formatEquipmentName(equipment);
+    
+    item.appendChild(checkbox);
+    item.appendChild(label);
+    
+    // Click on entire item toggles checkbox
+    item.addEventListener('click', (e) => {
+      if (e.target !== checkbox) {
+        checkbox.checked = !checkbox.checked;
+        updateSelectedCount();
+      }
+    });
+    
+    checkbox.addEventListener('change', updateSelectedCount);
+    
+    equipmentGrid.appendChild(item);
+  });
+}
+
+/**
+ * Update selected count display
+ */
+function updateSelectedCount() {
+  const checkedCount = equipmentGrid.querySelectorAll('input[type="checkbox"]:checked').length;
+  filterSelectedCount.textContent = `${checkedCount} selected`;
+}
+
+/**
+ * Update filter button count
+ */
+function updateFilterButton() {
+  filterCount.textContent = selectedEquipment.size;
+  
+  if (selectedEquipment.size > 0) {
+    filterBtn.classList.add('has-filters');
+  } else {
+    filterBtn.classList.remove('has-filters');
+  }
+}
+
+/**
+ * Rerender all loaded muscle groups with current filters
+ */
+function reapplyFilters() {
+  loadedGroups.forEach(group => {
+    const groupSection = document.getElementById(`section-${group}`);
+    if (!groupSection) return;
+
+    const exercises = exerciseData.allExercises[group];
+    if (!exercises) return;
+
+    const filteredExercises = filterByEquipment(exercises);
+
+    if (filteredExercises.length === 0) {
+      groupSection.innerHTML = `<h2>${group}</h2><p>No exercises found with selected equipment.</p>`;
+      return;
+    }
+
+    groupSection.innerHTML = `
+      <h2>${group}</h2>
+      <div class="exercise-group">
+        ${filteredExercises.map((ex, index) => createExerciseCard(ex, group, index)).join("")}
+      </div>
+    `;
+
+    // Re-attach instruction toggle listeners
+    groupSection.querySelectorAll(".show-instructions").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const exerciseId = btn.dataset.exerciseId;
+        if (!exerciseId) return;
+
+        const instructionsDiv = document.getElementById(`instructions-${exerciseId}`);
+        if (!instructionsDiv) return;
+        
+        const showing = instructionsDiv.style.display === "block";
+        instructionsDiv.style.display = showing ? "none" : "block";
+        btn.textContent = showing ? "Show Instructions" : "Hide Instructions";
+      });
+    });
+  });
+}
+
+// Event Listeners
+if (filterBtn) {
+  filterBtn.addEventListener('click', () => {
+    filterModal.classList.remove('hidden');
+    // Sync checkboxes with current selection
+    equipmentGrid.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+      checkbox.checked = selectedEquipment.has(checkbox.value);
+    });
+    updateSelectedCount();
+  });
+}
+
+if (filterClose) {
+  filterClose.addEventListener('click', () => {
+    filterModal.classList.add('hidden');
+  });
+}
+
+if (filterModal) {
+  filterModal.addEventListener('click', (e) => {
+    if (e.target === filterModal) {
+      filterModal.classList.add('hidden');
+    }
+  });
+}
+
+if (applyFiltersBtn) {
+  applyFiltersBtn.addEventListener('click', () => {
+    // Get all checked equipment
+    selectedEquipment.clear();
+    equipmentGrid.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
+      selectedEquipment.add(checkbox.value);
+    });
+    
+    updateFilterButton();
+    reapplyFilters();
+    filterModal.classList.add('hidden');
+  });
+}
+
+if (clearFiltersBtn) {
+  clearFiltersBtn.addEventListener('click', () => {
+    equipmentGrid.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+      checkbox.checked = false;
+    });
+    updateSelectedCount();
+  });
+}
+
+// Initialize on page load
+initEquipmentFilter();
+updateFilterButton();

@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="css/workout-modal.css">
   <link rel="stylesheet" href="css/navigation.css">
+  <link rel="stylesheet" href="css/equipment-filter.css">
 </head>
 <body>
   <!-- Fixed Workout Bar (hidden by default until a workout is added) -->
@@ -63,9 +64,40 @@
     </nav>
   </header>
 
+  <!-- Equipment Filter Modal -->
+  <div id="equipment-filter-modal" class="equipment-filter-modal hidden">
+    <div class="equipment-filter-content">
+      <div class="equipment-filter-header">
+        <h2>Filter by Equipment</h2>
+        <button type="button" id="equipment-filter-close" class="equipment-filter-close" aria-label="Close filter">
+          &times;
+        </button>
+      </div>
+
+      <div class="equipment-filter-body">
+        <div id="equipment-grid" class="equipment-grid">
+          <!-- Equipment checkboxes will be generated here -->
+        </div>
+      </div>
+
+      <div class="equipment-filter-footer">
+        <span class="selected-count" id="filter-selected-count">0 selected</span>
+        <div class="equipment-filter-actions">
+          <button type="button" id="clear-filters-btn" class="clear-filters-btn">Clear All</button>
+          <button type="button" id="apply-filters-btn" class="apply-filters-btn">Apply Filters</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <main>
     <div id="muscle-group-full">
       <h1>Muscle Group Selector</h1>
+      <button type="button" id="filter-btn" class="filter-btn">
+        <span class="filter-icon">⚙️</span>
+        <span>Filter Equipment</span>
+        <span class="filter-count" id="filter-count">0</span>
+      </button>
       <section id="muscle-groups-selector">
         <button data-group="Legs">Legs</button>
         <button data-group="Biceps">Biceps</button>

@@ -4,7 +4,8 @@ main{ /* Reset Grid from Home Page */
 
 #muscle-group-full{
   display:grid;
-  grid-template-rows: auto auto;
+  grid-template-rows: auto auto auto;
+  gap: 10px;
 }
 
 h1{
@@ -32,7 +33,7 @@ h1{
 }
 
 #muscle-groups-selector {
-  grid-row: 2;
+  grid-row: 3;
   display: grid;
   grid-template-columns: repeat(4, auto);
   justify-content: center;
