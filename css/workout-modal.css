@@ -339,21 +339,109 @@ body {
 /* ============================
    RESPONSIVE TWEAKS
 ============================ */
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .workout-bar {
     width: 100%;
     border-radius: 0 0 12px 12px;
+    left: 0;
+    transform: none;
   }
 
   body {
-    padding-top: 0px
+    padding-top: 0px;
+  }
+
+  .workout-bar-header {
+    padding: 12px 15px;
+  }
+
+  #workout-name-input {
+    font-size: 14px;
+    max-width: 150px;
   }
 
   .workout-row {
-    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .workout-row label {
+    font-size: 12px;
+  }
+
+  .workout-row input[type="number"] {
+    width: 50px;
+    padding: 4px 6px;
+    font-size: 13px;
+  }
+
+  .workout-name {
+    width: 100%;
+    margin-bottom: 5px;
+    font-size: 14px;
+  }
+
+  .howto-btn,
+  .remove-workout-btn {
+    padding: 6px 10px;
+    font-size: 12px;
   }
 
   .remove-workout-btn {
     margin-left: 0;
+  }
+
+  .copy-share-btn {
+    padding: 12px;
+    font-size: 13px;
+  }
+
+  .howto-modal-content {
+    width: 95%;
+    padding: 15px;
+    max-width: none;
+    margin: 10px;
+  }
+
+  .howto-modal-content h2 {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .workout-bar-header {
+    padding: 10px 12px;
+  }
+
+  #workout-name-input {
+    font-size: 13px;
+    max-width: 120px;
+  }
+
+  #workout-bar-count {
+    font-size: 11px;
+    min-width: 20px;
+    height: 20px;
+  }
+
+  .workout-bar-chevron {
+    width: 22px;
+    height: 22px;
+    font-size: 11px;
+  }
+
+  .workout-bar-body {
+    max-height: 60vh;
+  }
+
+  .workout-row {
+    padding: 10px;
+  }
+
+  .howto-btn,
+  .remove-workout-btn {
+    flex: 1;
+    text-align: center;
   }
 }

@@ -608,3 +608,119 @@ main {
     gap: 15px;
   }
 }
+
+/* ============================
+   ENHANCED FORM VALIDATION STYLES
+============================ */
+
+/* Field error state */
+.field-error {
+  border-color: #dc3545 !important;
+  background-color: #fff8f8 !important;
+  animation: shake 0.4s ease-out;
+}
+
+.field-error:focus {
+  box-shadow: 0 0 0 4px rgba(220, 53, 69, 0.15) !important;
+}
+
+/* Field valid state */
+.field-valid {
+  border-color: #28a745 !important;
+  background-color: #f8fff8 !important;
+}
+
+.field-valid:focus {
+  box-shadow: 0 0 0 4px rgba(40, 167, 69, 0.15) !important;
+}
+
+/* Error message styling */
+.field-error-message {
+  display: block;
+  color: #dc3545;
+  font-size: 0.85rem;
+  margin-top: 6px;
+  padding-left: 4px;
+  animation: slideInUp 0.3s ease-out;
+}
+
+/* Shake animation for errors */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-5px); }
+  40%, 80% { transform: translateX(5px); }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Form message enhancements */
+.form-message {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-radius: 10px;
+  margin-top: 20px;
+  font-weight: 500;
+}
+
+.form-message.success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.form-message.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.message-icon {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.form-message.success .message-icon {
+  color: #28a745;
+}
+
+.form-message.error .message-icon {
+  color: #dc3545;
+}
+
+/* Loading spinner */
+.loading-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 0.8s linear infinite;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

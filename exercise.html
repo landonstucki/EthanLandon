@@ -6,6 +6,7 @@
   <title>WebFit - Create an Exercise</title>
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="css/workout-modal.css">
+  <link rel="stylesheet" href="css/navigation.css">
 </head>
 <body>
   <!-- Fixed Workout Bar (hidden by default until a workout is added) -->
@@ -86,5 +87,9 @@
 
   <script src="js/exercise.js"></script>
   <script src="js/workout-form.js"></script>
+  <script type="module">
+    import { initNavigation } from './js/navigation.js';
+    initNavigation();
+  </script>
 </body>
 </html>

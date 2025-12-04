@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WebFit - Home</title>
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/navigation.css">
 </head>
 <body>
     <header>
@@ -43,8 +44,12 @@
 
         </div>
     </main>
+    <script type="module">
+        import { initNavigation } from './js/navigation.js';
+        initNavigation();
+    </script>
 </body>
 <footer>
-    <p>&copy WebFit. All Rights Reserved.</p>
+    <p>&copy; WebFit. All Rights Reserved.</p>
 </footer>
 </html>
