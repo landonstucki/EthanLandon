@@ -121,7 +121,14 @@
   <script src="js/workout-form.js"></script>
   <script type="module">
     import { initNavigation } from './js/navigation.js';
-    initNavigation();
+    import { initExercisePage } from './js/exercise.js';
+    import { initWorkoutForm } from './js/workout-form.js';
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      initNavigation();
+      initExercisePage();
+      initWorkoutForm();
+    });
   </script>
 </body>
 </html>

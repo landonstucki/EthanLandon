@@ -92,7 +92,7 @@
     position: absolute;
     top: 15px;
     right: 15px;
-    z-index: 1001;
+    z-index: 4001;
   }
 
   nav {
@@ -116,7 +116,7 @@
     visibility: hidden;
     transform: translateY(-10px);
     transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
-    z-index: 1000;
+    z-index: 4000;
     overflow: hidden;
   }
 

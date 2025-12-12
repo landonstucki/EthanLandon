@@ -3,8 +3,9 @@
 
 const CONTACT_STORAGE_KEY = "webfit-contact-submissions";
 
-document.addEventListener('DOMContentLoaded', function() {
+export function initContactForm() {
     const contactForm = document.getElementById('contactForm');
+    if (!contactForm) return;
     
     // Form submission handler
     contactForm.addEventListener('submit', function(e) {
@@ -246,4 +247,9 @@ document.addEventListener('DOMContentLoaded', function() {
             this.classList.remove('field-valid');
         });
     });
-});
+}
+
+// Auto-initialize if not loaded as module
+if (typeof document !== 'undefined' && !document.querySelector('script[type="module"]')) {
+    document.addEventListener('DOMContentLoaded', initContactForm);
+}

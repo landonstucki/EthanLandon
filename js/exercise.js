@@ -10,13 +10,8 @@ const exerciseData = {
 let selectedEquipment = new Set();
 
 // Buttons for each major muscle group and the main results area.
-const buttons = document.querySelectorAll("#muscle-groups-selector button");
-const results = document.getElementById("exercise-results");
-
-// If this ever logs, something is wrong with the HTML ID.
-if (!results) {
-  console.error("exercise-results element not found");
-}
+let buttons;
+let results;
 
 // Tiny helper so I can slow down the API calls a bit.
 // (This is me trying to be nice to the API.)
@@ -161,7 +156,7 @@ buttons.forEach((button) => {
     // Create a temporary "loading" section for this group.
     const groupSection = document.createElement("div");
     groupSection.id = `section-${group}`;
-    groupSection.innerHTML = `<h2>${group}</h2><p>Loading ${group} exercises…</p>`;
+    groupSection.innerHTML = `<h2>${group}</h2><p style="text-align: center; color: #666; font-size: 1.1em; margin: 20px 0;">Loading ${group} exercises…</p>`;
     results.appendChild(groupSection);
 
     const allExercises = [];
@@ -185,7 +180,7 @@ buttons.forEach((button) => {
     const unique = Array.from(new Map(allExercises.map(ex => [key(ex), ex])).values());
 
     if (unique.length === 0) {
-      groupSection.innerHTML = `<h2>${group}</h2><p>No exercises found.</p>`;
+      groupSection.innerHTML = `<h2>${group}</h2><p style="text-align: center; color: #999; font-size: 1.1em; margin: 20px 0;">No exercises found.</p>`;
       return;
     }
 
@@ -196,7 +191,7 @@ buttons.forEach((button) => {
     const filteredExercises = filterByEquipment(unique);
 
     if (filteredExercises.length === 0) {
-      groupSection.innerHTML = `<h2>${group}</h2><p>No exercises found with selected equipment.</p>`;
+      groupSection.innerHTML = `<h2>${group}</h2><p style="text-align: center; color: #999; font-size: 1.1em; margin: 20px 0;">No exercises found with selected equipment.</p>`;
       return;
     }
 
@@ -345,7 +340,7 @@ function reapplyFilters() {
     const filteredExercises = filterByEquipment(exercises);
 
     if (filteredExercises.length === 0) {
-      groupSection.innerHTML = `<h2>${group}</h2><p>No exercises found with selected equipment.</p>`;
+      groupSection.innerHTML = `<h2>${group}</h2><p style="text-align: center; color: #999; font-size: 1.1em; margin: 20px 0;">No exercises found with selected equipment.</p>`;
       return;
     }
 
@@ -422,6 +417,23 @@ if (clearFiltersBtn) {
   });
 }
 
-// Initialize on page load
-initEquipmentFilter();
-updateFilterButton();
+// Initialize equipment filter
+export function initExercisePage() {
+  // Initialize DOM elements
+  buttons = document.querySelectorAll("#muscle-groups-selector button");
+  results = document.getElementById("exercise-results");
+  
+  // If this ever logs, something is wrong with the HTML ID.
+  if (!results) {
+    console.error("exercise-results element not found");
+  }
+  
+  // Initialize equipment filter
+  initEquipmentFilter();
+  updateFilterButton();
+}
+
+// Auto-initialize if not loaded as module
+if (typeof document !== 'undefined' && !document.querySelector('script[type="module"]')) {
+  document.addEventListener('DOMContentLoaded', initExercisePage);
+}

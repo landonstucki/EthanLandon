@@ -6,17 +6,15 @@
     <title>WebFit - Contact Us</title>
     <link rel="stylesheet" href="css/contact.css">
     <link rel="stylesheet" href="css/navigation.css">
-    <script src="js/contact.js" defer></script>
-</head>
-<body>
-    <header>
-    <img id = "hero-banner" alt = "WebFit Main Banner" src = "images/bannerimg.png">
-    <p id="banner-text">WebFit<br>Contact</p>
-    <nav>
-        <a href = "/home.html">Home</a>
-        <a href = "/exercise.html">Exercise</a>
-        <a href = "/contact.html">Contact</a>
-    </nav>
+    <script type="module">
+        import { initNavigation } from './js/navigation.js';
+        import { initContactForm } from './js/contact.js';
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            initNavigation();
+            initContactForm();
+        });
+    </script>
     </header>
 
     <main>
@@ -135,9 +133,14 @@
             </div>
         </section>
     </main>
-    <script type="module">
+    <script type=\"module\">
         import { initNavigation } from './js/navigation.js';
-        initNavigation();
+        import { initContactForm } from './js/contact.js';
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            initNavigation();
+            initContactForm();
+        });
     </script>
 </body>
 <footer>

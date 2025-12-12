@@ -4,24 +4,24 @@
 const LOCAL_STORAGE_KEY = "webfit-workout-state";
 
 // Hooks into the fixed workout bar at the top.
-const workoutBar = document.getElementById("workout-bar");
-const workoutBarToggle = document.getElementById("workout-bar-toggle");
-const workoutBarBody = document.getElementById("workout-bar-body");
-const workoutNameInput = document.getElementById("workout-name-input");
-const workoutBarCount = document.getElementById("workout-bar-count");
-const workoutBarChevron = document.querySelector(".workout-bar-chevron");
-const workoutBarContent = document.getElementById("workout-bar-content");
-const copyShareBtn = document.getElementById("copy-share-btn");
-const shareConfirmMsg = document.getElementById("share-confirm");
+let workoutBar;
+let workoutBarToggle;
+let workoutBarBody;
+let workoutNameInput;
+let workoutBarCount;
+let workoutBarChevron;
+let workoutBarContent;
+let copyShareBtn;
+let shareConfirmMsg;
 
 // This is the How-To modal that opens from inside the dropdown.
-const howtoModal = document.getElementById("howto-modal");
-const howtoModalTitle = document.getElementById("howto-modal-title");
-const howtoModalGif = document.getElementById("howto-modal-gif");
-const howtoModalClose = document.getElementById("howto-modal-close");
+let howtoModal;
+let howtoModalTitle;
+let howtoModalGif;
+let howtoModalClose;
 
 // All of the exercise cards live here in the main content.
-const resultsContainer = document.getElementById("exercise-results");
+let resultsContainer;
 
 // This is my "truth" for the custom workout.
 // The top dropdown UI is just a visual view into this array.
@@ -568,4 +568,45 @@ if (howtoModal) {
       closeHowToModal();
     }
   });
+}
+
+// Initialize workout form
+export function initWorkoutForm() {
+  // Initialize DOM elements
+  workoutBar = document.getElementById("workout-bar");
+  workoutBarToggle = document.getElementById("workout-bar-toggle");
+  workoutBarBody = document.getElementById("workout-bar-body");
+  workoutNameInput = document.getElementById("workout-name-input");
+  workoutBarCount = document.getElementById("workout-bar-count");
+  workoutBarChevron = document.querySelector(".workout-bar-chevron");
+  workoutBarContent = document.getElementById("workout-bar-content");
+  copyShareBtn = document.getElementById("copy-share-btn");
+  shareConfirmMsg = document.getElementById("share-confirm");
+  howtoModal = document.getElementById("howto-modal");
+  howtoModalTitle = document.getElementById("howto-modal-title");
+  howtoModalGif = document.getElementById("howto-modal-gif");
+  howtoModalClose = document.getElementById("howto-modal-close");
+  resultsContainer = document.getElementById("exercise-results");
+  
+  // Setup event listeners
+  setupWorkoutBarListeners();
+}
+
+function setupWorkoutBarListeners() {
+  // How-To modal close behavior
+  if (howtoModalClose) {
+    howtoModalClose.addEventListener("click", closeHowToModal);
+  }
+  if (howtoModal) {
+    howtoModal.addEventListener("click", (e) => {
+      if (e.target === howtoModal) {
+        closeHowToModal();
+      }
+    });
+  }
+}
+
+// Auto-initialize if not loaded as module
+if (typeof document !== 'undefined' && !document.querySelector('script[type="module"]')) {
+  document.addEventListener('DOMContentLoaded', initWorkoutForm);
 }
