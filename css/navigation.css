@@ -2,9 +2,16 @@
    NAVIGATION & HAMBURGER MENU
 ============================ */
 
-/* Hamburger Button */
+/* Ensure header doesn't clip dropdown on mobile */
+@media screen and (max-width: 768px) {
+  header {
+    overflow: visible !important;
+  }
+}
+
+/* Hamburger Button - visible on mobile by default */
 .hamburger-menu {
-  display: none;
+  display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
@@ -16,8 +23,10 @@
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  z-index: 1001;
-  position: relative;
+  z-index: 5501;
+  position: absolute;
+  top: 15px;
+  right: 15px;
   transition: background 0.3s ease, transform 0.2s ease;
 }
 
@@ -54,9 +63,9 @@
   transform: translateY(-8px) rotate(-45deg);
 }
 
-/* Navigation Dropdown Container */
+/* Navigation Dropdown Container - hidden on mobile by default */
 .nav-dropdown {
-  display: flex;
+  display: none;
   gap: 2em;
   transition: all 0.3s ease;
 }
@@ -92,16 +101,19 @@
     position: absolute;
     top: 15px;
     right: 15px;
-    z-index: 4001;
+    z-index: 5501;
   }
 
   nav {
     position: relative;
     padding: 10px;
     justify-content: flex-start;
+    width: 100%;
+    /* Ensure nav has full width so dropdown can span */
   }
 
   .nav-dropdown {
+    display: flex;
     position: absolute;
     top: 100%;
     right: 0;
@@ -116,7 +128,7 @@
     visibility: hidden;
     transform: translateY(-10px);
     transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
-    z-index: 4000;
+    z-index: 5500;
     overflow: hidden;
   }
 
@@ -152,11 +164,25 @@
     animation: slideInRight 0.3s ease forwards;
   }
 
-  .nav-dropdown.open a:nth-child(1) { animation-delay: 0.05s; }
-  .nav-dropdown.open a:nth-child(2) { animation-delay: 0.1s; }
-  .nav-dropdown.open a:nth-child(3) { animation-delay: 0.15s; }
-  .nav-dropdown.open a:nth-child(4) { animation-delay: 0.2s; }
-  .nav-dropdown.open a:nth-child(5) { animation-delay: 0.25s; }
+  .nav-dropdown.open a:nth-child(1) {
+    animation-delay: 0.05s;
+  }
+
+  .nav-dropdown.open a:nth-child(2) {
+    animation-delay: 0.1s;
+  }
+
+  .nav-dropdown.open a:nth-child(3) {
+    animation-delay: 0.15s;
+  }
+
+  .nav-dropdown.open a:nth-child(4) {
+    animation-delay: 0.2s;
+  }
+
+  .nav-dropdown.open a:nth-child(5) {
+    animation-delay: 0.25s;
+  }
 }
 
 @keyframes slideInRight {
@@ -164,6 +190,7 @@
     opacity: 0;
     transform: translateX(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);

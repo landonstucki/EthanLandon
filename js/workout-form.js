@@ -381,8 +381,7 @@ async function findExerciseForWorkout(workout) {
 
   // Optional dedupe like in exercise.js
   const key = (ex) =>
-    `${ex.exerciseId || ex.name}-${
-      Array.isArray(ex.equipments) ? ex.equipments.join(",") : ex.equipments || "none"
+    `${ex.exerciseId || ex.name}-${Array.isArray(ex.equipments) ? ex.equipments.join(",") : ex.equipments || "none"
     }`;
 
   const unique = Array.from(new Map(allExercises.map((ex) => [key(ex), ex])).values());
@@ -448,128 +447,6 @@ function closeHowToModal() {
   }
 }
 
-// === Bootstrapping: first see if URL has data, else use localStorage ===
-initWorkoutState();
-
-// === Event listeners ===
-
-// Add Workout from exercise cards
-if (resultsContainer) {
-  resultsContainer.addEventListener("click", (e) => {
-    const btn = e.target.closest(".add-workout-btn");
-    if (!btn) return;
-
-    const exerciseName = btn.dataset.exerciseName || "";
-    const muscleGroup = btn.dataset.muscleGroup || "";
-    const gifUrl = btn.dataset.exerciseGif || "";
-
-    addWorkoutFromCard(exerciseName, muscleGroup, gifUrl);
-  });
-}
-
-// Click header to expand/collapse (but don't toggle when editing the name).
-if (workoutBarToggle) {
-  workoutBarToggle.addEventListener("click", (e) => {
-    if (!selectedWorkouts.length) return;
-    if (e.target === workoutNameInput) return;
-    toggleWorkoutBarExpansion();
-  });
-}
-
-// Let me click into the name input without collapsing/expanding the bar.
-if (workoutNameInput) {
-  workoutNameInput.addEventListener("click", (e) => {
-    e.stopPropagation();
-  });
-
-  // If I rename the workout, sync everything.
-  workoutNameInput.addEventListener("input", () => {
-    persistState();
-  });
-}
-
-// Stuff that happens inside the dropdown rows: remove, How-To, sets, reps.
-if (workoutBarContent) {
-  workoutBarContent.addEventListener("click", (e) => {
-    const row = e.target.closest(".workout-row");
-    if (!row) return;
-    const id = row.dataset.id;
-    const workout = selectedWorkouts.find(w => w.id === id);
-
-    if (e.target.classList.contains("remove-workout-btn")) {
-      removeWorkout(id);
-      return;
-    }
-
-    if (e.target.classList.contains("howto-btn")) {
-      if (workout) {
-        handleHowToClick(workout);
-      }
-      return;
-    }
-  });
-
-  workoutBarContent.addEventListener("input", (e) => {
-    const row = e.target.closest(".workout-row");
-    if (!row) return;
-    const id = row.dataset.id;
-    const workout = selectedWorkouts.find(w => w.id === id);
-    if (!workout) return;
-
-    if (e.target.classList.contains("workout-sets")) {
-      const val = parseInt(e.target.value, 10);
-      workout.sets = isNaN(val) || val < 1 ? 1 : val;
-      e.target.value = workout.sets;
-      persistState();
-    }
-
-    if (e.target.classList.contains("workout-reps")) {
-      const val = parseInt(e.target.value, 10);
-      workout.reps = isNaN(val) || val < 1 ? 1 : val;
-      e.target.value = workout.reps;
-      persistState();
-    }
-  });
-}
-
-// Button at bottom that copies the full URL (with encoded workout) to clipboard.
-if (copyShareBtn) {
-  copyShareBtn.addEventListener("click", async () => {
-    if (!selectedWorkouts.length) {
-      alert("No workouts selected to share.");
-      return;
-    }
-
-    const shareUrl = window.location.href;
-
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-      if (shareConfirmMsg) {
-        shareConfirmMsg.classList.remove("hidden");
-        setTimeout(() => {
-          shareConfirmMsg.classList.add("hidden");
-        }, 1600);
-      }
-    } catch (err) {
-      console.error("Failed to copy workout link:", err);
-      alert("Could not copy the link. Please copy it manually from the address bar.");
-    }
-  });
-}
-
-// How-To modal close behavior.
-if (howtoModalClose) {
-  howtoModalClose.addEventListener("click", closeHowToModal);
-}
-if (howtoModal) {
-  howtoModal.addEventListener("click", (e) => {
-    // Clicking the dark backdrop closes it.
-    if (e.target === howtoModal) {
-      closeHowToModal();
-    }
-  });
-}
-
 // Initialize workout form
 export function initWorkoutForm() {
   // Initialize DOM elements
@@ -587,26 +464,129 @@ export function initWorkoutForm() {
   howtoModalGif = document.getElementById("howto-modal-gif");
   howtoModalClose = document.getElementById("howto-modal-close");
   resultsContainer = document.getElementById("exercise-results");
-  
-  // Setup event listeners
+
+  // Initialize workout state (load from URL or localStorage)
+  initWorkoutState();
+
+  // Setup all event listeners
   setupWorkoutBarListeners();
 }
 
 function setupWorkoutBarListeners() {
-  // How-To modal close behavior
+  // Add Workout from exercise cards
+  if (resultsContainer) {
+    resultsContainer.addEventListener("click", (e) => {
+      const btn = e.target.closest(".add-workout-btn");
+      if (!btn) return;
+
+      const exerciseName = btn.dataset.exerciseName || "";
+      const muscleGroup = btn.dataset.muscleGroup || "";
+      const gifUrl = btn.dataset.exerciseGif || "";
+
+      addWorkoutFromCard(exerciseName, muscleGroup, gifUrl);
+    });
+  }
+
+  // Click header to expand/collapse (but don't toggle when editing the name).
+  if (workoutBarToggle) {
+    workoutBarToggle.addEventListener("click", (e) => {
+      if (!selectedWorkouts.length) return;
+      if (e.target === workoutNameInput) return;
+      toggleWorkoutBarExpansion();
+    });
+  }
+
+  // Let me click into the name input without collapsing/expanding the bar.
+  if (workoutNameInput) {
+    workoutNameInput.addEventListener("click", (e) => {
+      e.stopPropagation();
+    });
+
+    // If I rename the workout, sync everything.
+    workoutNameInput.addEventListener("input", () => {
+      persistState();
+    });
+  }
+
+  // Stuff that happens inside the dropdown rows: remove, How-To, sets, reps.
+  if (workoutBarContent) {
+    workoutBarContent.addEventListener("click", (e) => {
+      const row = e.target.closest(".workout-row");
+      if (!row) return;
+      const id = row.dataset.id;
+      const workout = selectedWorkouts.find(w => w.id === id);
+
+      if (e.target.classList.contains("remove-workout-btn")) {
+        removeWorkout(id);
+        return;
+      }
+
+      if (e.target.classList.contains("howto-btn")) {
+        if (workout) {
+          handleHowToClick(workout);
+        }
+        return;
+      }
+    });
+
+    workoutBarContent.addEventListener("input", (e) => {
+      const row = e.target.closest(".workout-row");
+      if (!row) return;
+      const id = row.dataset.id;
+      const workout = selectedWorkouts.find(w => w.id === id);
+      if (!workout) return;
+
+      if (e.target.classList.contains("workout-sets")) {
+        const val = parseInt(e.target.value, 10);
+        workout.sets = isNaN(val) || val < 1 ? 1 : val;
+        e.target.value = workout.sets;
+        persistState();
+      }
+
+      if (e.target.classList.contains("workout-reps")) {
+        const val = parseInt(e.target.value, 10);
+        workout.reps = isNaN(val) || val < 1 ? 1 : val;
+        e.target.value = workout.reps;
+        persistState();
+      }
+    });
+  }
+
+  // Button at bottom that copies the full URL (with encoded workout) to clipboard.
+  if (copyShareBtn) {
+    copyShareBtn.addEventListener("click", async () => {
+      if (!selectedWorkouts.length) {
+        alert("No workouts selected to share.");
+        return;
+      }
+
+      const shareUrl = window.location.href;
+
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        if (shareConfirmMsg) {
+          shareConfirmMsg.classList.remove("hidden");
+          setTimeout(() => {
+            shareConfirmMsg.classList.add("hidden");
+          }, 1600);
+        }
+      } catch (err) {
+        console.error("Failed to copy workout link:", err);
+        alert("Could not copy the link. Please copy it manually from the address bar.");
+      }
+    });
+  }
+
+  // How-To modal close behavior.
   if (howtoModalClose) {
     howtoModalClose.addEventListener("click", closeHowToModal);
   }
   if (howtoModal) {
     howtoModal.addEventListener("click", (e) => {
+      // Clicking the dark backdrop closes it.
       if (e.target === howtoModal) {
         closeHowToModal();
       }
     });
   }
-}
-
-// Auto-initialize if not loaded as module
-if (typeof document !== 'undefined' && !document.querySelector('script[type="module"]')) {
-  document.addEventListener('DOMContentLoaded', initWorkoutForm);
 }

@@ -61,13 +61,3 @@ export function initNavigation() {
     });
   });
 }
-
-// Auto-initialize if not using as module
-if (typeof document !== 'undefined') {
-  document.addEventListener('DOMContentLoaded', () => {
-    // Only auto-init if not loaded as a module
-    if (!document.querySelector('script[type="module"]')) {
-      initNavigation();
-    }
-  });
-}
