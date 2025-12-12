@@ -9,6 +9,15 @@ const exerciseData = {
 // Equipment filter state
 let selectedEquipment = new Set();
 
+// Equipment filter DOM elements
+let filterBtn;
+let filterModal;
+let equipmentGrid;
+let filterSelectedCount;
+let applyFiltersBtn;
+let clearFiltersBtn;
+let closeFilterBtn;
+
 // Buttons for each major muscle group and the main results area.
 let buttons;
 let results;
@@ -21,16 +30,16 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 // that the ExerciseDB API understands. If I ever add new buttons, update here.
 const muscleGroups = {
   Legs: [
-    "quadriceps","quads","hamstrings","glutes","calves","soleus","shins",
-    "inner thighs","groin","hip flexors","abductors","adductors"
+    "quadriceps", "quads", "hamstrings", "glutes", "calves", "soleus", "shins",
+    "inner thighs", "groin", "hip flexors", "abductors", "adductors"
   ],
-  Biceps: ["biceps","brachialis"],
+  Biceps: ["biceps", "brachialis"],
   Triceps: ["triceps"],
-  Core: ["abs","abdominals","lower abs","obliques","core","serratus anterior","hip flexors"],
-  Back: ["back","upper back","lower back","latissimus dorsi","lats","rhomboids","spine"],
-  Chest: ["chest","upper chest","pectorals"],
-  Shoulders: ["shoulders","deltoids","delts","rear deltoids","rotator cuff"],
-  Traps: ["traps","trapezius","levator scapulae","sternocleidomastoid"]
+  Core: ["abs", "abdominals", "lower abs", "obliques", "core", "serratus anterior", "hip flexors"],
+  Back: ["back", "upper back", "lower back", "latissimus dorsi", "lats", "rhomboids", "spine"],
+  Chest: ["chest", "upper chest", "pectorals"],
+  Shoulders: ["shoulders", "deltoids", "delts", "rear deltoids", "rotator cuff"],
+  Traps: ["traps", "trapezius", "levator scapulae", "sternocleidomastoid"]
 };
 
 // Just keeping track of what sections are currently visible.
@@ -64,7 +73,7 @@ async function fetchExercisesByMuscle(muscleName) {
     // The API can respond in a couple of shapes.
     // This line tries to gracefully handle both.
     const exercises = json.success && json.data ? json.data : (Array.isArray(json) ? json : []);
-    
+
     exerciseData.cache[formatted] = exercises;
     return exercises;
   } catch (err) {
@@ -80,17 +89,17 @@ async function fetchExercisesByMuscle(muscleName) {
 function createExerciseCard(exercise, muscleGroup, index) {
   const hasInstructions = exercise.instructions && exercise.instructions.length > 0;
   const uniqueId = `${muscleGroup}-${index}`.replace(/\s+/g, '-').toLowerCase();
-  
-  const targetMuscles = Array.isArray(exercise.targetMuscles) 
-    ? exercise.targetMuscles.join(", ") 
+
+  const targetMuscles = Array.isArray(exercise.targetMuscles)
+    ? exercise.targetMuscles.join(", ")
     : exercise.targetMuscles || "N/A";
-  
-  const secondaryMuscles = Array.isArray(exercise.secondaryMuscles) 
-    ? exercise.secondaryMuscles.join(", ") 
+
+  const secondaryMuscles = Array.isArray(exercise.secondaryMuscles)
+    ? exercise.secondaryMuscles.join(", ")
     : "None";
-  
-  const equipment = Array.isArray(exercise.equipments) 
-    ? exercise.equipments.join(", ") 
+
+  const equipment = Array.isArray(exercise.equipments)
+    ? exercise.equipments.join(", ")
     : exercise.equipments || "N/A";
 
   const gifUrl = exercise.gifUrl || "";
@@ -143,14 +152,8 @@ const equipmentList = [
   "leverage machine", "cable", "body weight"
 ];
 
-const filterBtn = document.getElementById("filter-btn");
-const filterModal = document.getElementById("equipment-filter-modal");
-const filterClose = document.getElementById("equipment-filter-close");
-const equipmentGrid = document.getElementById("equipment-grid");
-const applyFiltersBtn = document.getElementById("apply-filters-btn");
-const clearFiltersBtn = document.getElementById("clear-filters-btn");
-const filterCount = document.getElementById("filter-count");
-const filterSelectedCount = document.getElementById("filter-selected-count");
+// Equipment list is available immediately
+const availableEquipment = [...equipmentList];
 
 /**
  * Filter exercises by selected equipment
@@ -161,11 +164,11 @@ function filterByEquipment(exercises) {
   }
 
   return exercises.filter(exercise => {
-    const exerciseEquipment = Array.isArray(exercise.equipments) 
-      ? exercise.equipments 
+    const exerciseEquipment = Array.isArray(exercise.equipments)
+      ? exercise.equipments
       : [exercise.equipments || 'body weight'];
-    
-    return exerciseEquipment.some(eq => 
+
+    return exerciseEquipment.some(eq =>
       selectedEquipment.has((eq || '').toLowerCase().trim())
     );
   });
@@ -175,7 +178,7 @@ function filterByEquipment(exercises) {
  * Format equipment name to Title Case
  */
 function formatEquipmentName(equipment) {
-  return equipment.split(' ').map(word => 
+  return equipment.split(' ').map(word =>
     word.charAt(0).toUpperCase() + word.slice(1)
   ).join(' ');
 }
@@ -183,24 +186,29 @@ function formatEquipmentName(equipment) {
 /**
  * Initialize equipment filter modal
  */
+// Debounce timer for filter changes
+let filterDebounceTimer = null;
+
 function initEquipmentFilter() {
-  // Populate equipment grid
-  equipmentList.sort().forEach(equipment => {
+  const allEquipment = [...new Set(equipmentList)].sort();
+  equipmentGrid.innerHTML = '';
+
+  allEquipment.forEach(equipment => {
     const item = document.createElement('div');
     item.className = 'equipment-item';
-    
+
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.id = `eq-${equipment.replace(/\s+/g, '-')}`;
     checkbox.value = equipment;
-    
+
     const label = document.createElement('label');
     label.htmlFor = checkbox.id;
     label.textContent = formatEquipmentName(equipment);
-    
+
     item.appendChild(checkbox);
     item.appendChild(label);
-    
+
     // Click on entire item toggles checkbox
     item.addEventListener('click', (e) => {
       if (e.target !== checkbox) {
@@ -208,9 +216,24 @@ function initEquipmentFilter() {
         updateSelectedCount();
       }
     });
-    
+
+    // Debounced change handler for performance
+    checkbox.addEventListener('change', () => {
+      updateSelectedCount();
+
+      // Clear existing timer
+      if (filterDebounceTimer) {
+        clearTimeout(filterDebounceTimer);
+      }
+
+      // Wait 300ms after last change before updating
+      filterDebounceTimer = setTimeout(() => {
+        updateSelectedCount();
+      }, 300);
+    });
+
     checkbox.addEventListener('change', updateSelectedCount);
-    
+
     equipmentGrid.appendChild(item);
   });
 }
@@ -227,14 +250,66 @@ function updateSelectedCount() {
  * Update filter button count
  */
 function updateFilterButton() {
-  filterCount.textContent = selectedEquipment.size;
-  
-  if (selectedEquipment.size > 0) {
-    filterBtn.classList.add('has-filters');
-  } else {
-    filterBtn.classList.remove('has-filters');
+  if (!filterBtn) return;
+
+  const count = selectedEquipment.size;
+  const countEl = filterBtn.querySelector('.filter-count');
+
+  if (countEl) {
+    countEl.textContent = `(${count})`;
   }
+
+  if (count > 0) {
+    filterBtn.classList.add('active');
+  } else {
+    filterBtn.classList.remove('active');
+  }
+
+  // Also update the filter tags display
+  renderFilterTags();
 }
+
+// Render the active filter tags
+function renderFilterTags() {
+  const tagsContainer = document.getElementById('filter-tags-container');
+  if (!tagsContainer) return;
+
+  // Clear existing tags
+  tagsContainer.innerHTML = '';
+
+  // Create a tag for each selected equipment
+  selectedEquipment.forEach(equipment => {
+    const tag = document.createElement('div');
+    tag.className = 'filter-tag';
+
+    const text = document.createElement('span');
+    text.className = 'filter-tag-text';
+    text.textContent = formatEquipmentName(equipment);
+
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'filter-tag-remove';
+    removeBtn.innerHTML = '×';
+    removeBtn.setAttribute('aria-label', `Remove ${equipment} filter`);
+    removeBtn.addEventListener('click', () => {
+      // Remove from selected set
+      selectedEquipment.delete(equipment);
+
+      // Uncheck the checkbox in the modal
+      const checkbox = equipmentGrid.querySelector(`input[value="${equipment}"]`);
+      if (checkbox) checkbox.checked = false;
+
+      // Update UI
+      updateFilterButton();
+      updateSelectedCount();
+      reapplyFilters();
+    });
+
+    tag.appendChild(text);
+    tag.appendChild(removeBtn);
+    tagsContainer.appendChild(tag);
+  });
+}
+
 
 /**
  * Rerender all loaded muscle groups with current filters
@@ -250,7 +325,7 @@ function reapplyFilters() {
     const filteredExercises = filterByEquipment(exercises);
 
     if (filteredExercises.length === 0) {
-      groupSection.innerHTML = `<h2>${group}</h2><p style="text-align: center; color: #999; font-size: 1.1em; margin: 20px 0;">No exercises found with selected equipment.</p>`;
+      groupSection.innerHTML = `<h2>${group}</h2><p class="no-results-message">No exercises found with selected equipment.</p>`;
       return;
     }
 
@@ -269,7 +344,7 @@ function reapplyFilters() {
 
         const instructionsDiv = document.getElementById(`instructions-${exerciseId}`);
         if (!instructionsDiv) return;
-        
+
         const showing = instructionsDiv.style.display === "block";
         instructionsDiv.style.display = showing ? "none" : "block";
         btn.textContent = showing ? "Show Instructions" : "Hide Instructions";
@@ -278,69 +353,35 @@ function reapplyFilters() {
   });
 }
 
-// Event Listeners
-if (filterBtn) {
-  filterBtn.addEventListener('click', () => {
-    filterModal.classList.remove('hidden');
-    // Sync checkboxes with current selection
-    equipmentGrid.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-      checkbox.checked = selectedEquipment.has(checkbox.value);
-    });
-    updateSelectedCount();
-  });
-}
 
-if (filterClose) {
-  filterClose.addEventListener('click', () => {
-    filterModal.classList.add('hidden');
-  });
-}
+// ============================
+// MAIN PAGE INITIALIZATION
+// ============================
 
-if (filterModal) {
-  filterModal.addEventListener('click', (e) => {
-    if (e.target === filterModal) {
-      filterModal.classList.add('hidden');
-    }
-  });
-}
-
-if (applyFiltersBtn) {
-  applyFiltersBtn.addEventListener('click', () => {
-    // Get all checked equipment
-    selectedEquipment.clear();
-    equipmentGrid.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
-      selectedEquipment.add(checkbox.value);
-    });
-    
-    updateFilterButton();
-    reapplyFilters();
-    filterModal.classList.add('hidden');
-  });
-}
-
-if (clearFiltersBtn) {
-  clearFiltersBtn.addEventListener('click', () => {
-    equipmentGrid.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-      checkbox.checked = false;
-    });
-    updateSelectedCount();
-  });
-// Initialize equipment filter
 export function initExercisePage() {
   // Initialize DOM elements
   buttons = document.querySelectorAll("#muscle-groups-selector button");
   results = document.getElementById("exercise-results");
-  
+
+  // Initialize equipment filter DOM elements
+  filterBtn = document.getElementById("equipment-filter-btn");
+  filterModal = document.getElementById("equipment-filter-modal");
+  closeFilterBtn = document.getElementById("equipment-filter-close");
+  equipmentGrid = document.getElementById("equipment-grid");
+  applyFiltersBtn = document.getElementById("apply-filters-btn");
+  clearFiltersBtn = document.getElementById("clear-filters-btn");
+  filterSelectedCount = document.getElementById("filter-selected-count");
+
   // If this ever logs, something is wrong with the HTML ID.
   if (!results) {
     console.error("exercise-results element not found");
   }
-  
+
   // Setup muscle group button listeners
   buttons.forEach((button) => {
     button.addEventListener("click", async () => {
-      if (!results) return; 
-      
+      if (!results) return;
+
       const group = button.dataset.group;
       const muscles = muscleGroups[group];
       if (!muscles) return;
@@ -362,7 +403,13 @@ export function initExercisePage() {
       // Create a temporary "loading" section for this group.
       const groupSection = document.createElement("div");
       groupSection.id = `section-${group}`;
-      groupSection.innerHTML = `<h2>${group}</h2><p style="text-align: center; color: #666; font-size: 1.1em; margin: 20px 0;">Loading ${group} exercises…</p>`;
+      groupSection.innerHTML = `
+        <h2>${group}</h2>
+        <div class="loading-indicator">
+          <div class="loading-spinner"></div>
+          <p>Loading ${group} exercises...</p>
+        </div>
+      `;
       results.appendChild(groupSection);
 
       const allExercises = [];
@@ -386,7 +433,7 @@ export function initExercisePage() {
       const unique = Array.from(new Map(allExercises.map(ex => [key(ex), ex])).values());
 
       if (unique.length === 0) {
-        groupSection.innerHTML = `<h2>${group}</h2><p style="text-align: center; color: #999; font-size: 1.1em; margin: 20px 0;">No exercises found.</p>`;
+        groupSection.innerHTML = `<h2>${group}</h2><p class="no-results-message">No exercises found.</p>`;
         return;
       }
 
@@ -397,7 +444,7 @@ export function initExercisePage() {
       const filteredExercises = filterByEquipment(unique);
 
       if (filteredExercises.length === 0) {
-        groupSection.innerHTML = `<h2>${group}</h2><p style="text-align: center; color: #999; font-size: 1.1em; margin: 20px 0;">No exercises found with selected equipment.</p>`;
+        groupSection.innerHTML = `<h2>${group}</h2><p class="no-results-message">No exercises found with selected equipment.</p>`;
         return;
       }
 
@@ -417,7 +464,7 @@ export function initExercisePage() {
 
           const instructionsDiv = document.getElementById(`instructions-${exerciseId}`);
           if (!instructionsDiv) return;
-          
+
           const showing = instructionsDiv.style.display === "block";
           instructionsDiv.style.display = showing ? "none" : "block";
           btn.textContent = showing ? "Show Instructions" : "Hide Instructions";
@@ -425,13 +472,57 @@ export function initExercisePage() {
       });
     });
   });
-  
-  // Initialize equipment filter
+
+  // Equipment Filter Event Listeners
+  if (filterBtn) {
+    filterBtn.addEventListener('click', () => {
+      filterModal.classList.remove('hidden');
+      // Sync checkboxes with current selection
+      equipmentGrid.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+        checkbox.checked = selectedEquipment.has(checkbox.value);
+      });
+      updateSelectedCount();
+    });
+  }
+
+  if (closeFilterBtn) {
+    closeFilterBtn.addEventListener('click', () => {
+      filterModal.classList.add('hidden');
+    });
+  }
+
+  if (filterModal) {
+    filterModal.addEventListener('click', (e) => {
+      if (e.target === filterModal) {
+        filterModal.classList.add('hidden');
+      }
+    });
+  }
+
+  if (applyFiltersBtn) {
+    applyFiltersBtn.addEventListener('click', () => {
+      // Get all checked equipment
+      selectedEquipment.clear();
+      equipmentGrid.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
+        selectedEquipment.add(checkbox.value);
+      });
+
+      updateFilterButton();
+      reapplyFilters();
+      filterModal.classList.add('hidden');
+    });
+  }
+
+  if (clearFiltersBtn) {
+    clearFiltersBtn.addEventListener('click', () => {
+      equipmentGrid.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+        checkbox.checked = false;
+      });
+      updateSelectedCount();
+    });
+  }
+
+  // Initialize equipment filter AFTER DOM elements are queried
   initEquipmentFilter();
   updateFilterButton();
-}
-
-// Auto-initialize if not loaded as module
-if (typeof document !== 'undefined' && !document.querySelector('script[type="module"]')) {
-  document.addEventListener('DOMContentLoaded', initExercisePage);
 }

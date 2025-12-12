@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="css/workout-modal.css">
   <link rel="stylesheet" href="css/navigation.css">
   <link rel="stylesheet" href="css/equipment-filter.css">
+  <link rel="stylesheet" href="css/filter-tags.css">
 </head>
 <body>
   <!-- Fixed Workout Bar (hidden by default until a workout is added) -->
@@ -93,11 +94,15 @@
   <main>
     <div id="muscle-group-full">
       <h1>Muscle Group Selector</h1>
-      <button type="button" id="filter-btn" class="filter-btn">
+      <button id="equipment-filter-btn" class="equipment-filter-button">
         <span class="filter-icon">⚙️</span>
-        <span>Filter Equipment</span>
-        <span class="filter-count" id="filter-count">0</span>
+        <span class="filter-text">Equipment Filter</span>
+        <span class="filter-count">(0)</span>
       </button>
+      
+      <!-- Active filter tags display -->
+      <div id="filter-tags-container" class="filter-tags-container"></div>
+      
       <section id="muscle-groups-selector">
         <button data-group="Legs">Legs</button>
         <button data-group="Biceps">Biceps</button>
@@ -117,18 +122,16 @@
     <p>&copy; WebFit. All Rights Reserved.</p>
   </footer>
 
-  <script src="js/exercise.js"></script>
-  <script src="js/workout-form.js"></script>
   <script type="module">
     import { initNavigation } from './js/navigation.js';
     import { initExercisePage } from './js/exercise.js';
     import { initWorkoutForm } from './js/workout-form.js';
+    import { initScrollToTop } from './js/modules/scrollToTop.js';
     
-    document.addEventListener('DOMContentLoaded', () => {
-      initNavigation();
-      initExercisePage();
-      initWorkoutForm();
-    });
+    initNavigation();
+    initExercisePage();
+    initWorkoutForm();
+    initScrollToTop();
   </script>
 </body>
 </html>

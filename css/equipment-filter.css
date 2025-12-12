@@ -3,7 +3,7 @@
 ============================ */
 
 /* Filter Button */
-.filter-btn {
+.equipment-filter-button {
   background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
   color: white;
   border: none;
@@ -18,23 +18,27 @@
   align-items: center;
   gap: 8px;
   margin: 20px auto;
+  width: fit-content;
+  max-width: 100%;
+  justify-self: center;
+  /* Prevents stretching in grid container */
 }
 
-.filter-btn:hover {
+.equipment-filter-button:hover {
   background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
 }
 
-.filter-btn:active {
+.equipment-filter-button:active {
   transform: translateY(0);
 }
 
-.filter-btn .filter-icon {
+.equipment-filter-button .filter-icon {
   font-size: 1.2em;
 }
 
-.filter-btn .filter-count {
+.equipment-filter-button .filter-count {
   background: rgba(255, 255, 255, 0.2);
   border-radius: 12px;
   padding: 2px 8px;
@@ -69,6 +73,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -78,20 +83,22 @@
 .equipment-filter-content {
   background: white;
   border-radius: 16px;
-  max-width: 800px;
+  max-width: 1000px;
   width: 90%;
-  max-height: 85vh;
+  max-height: 90vh;
   display: flex;
   flex-direction: column;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   animation: slideUp 0.3s ease-out;
 }
 
+
 @keyframes slideUp {
   from {
     opacity: 0;
     transform: translateY(30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -146,8 +153,8 @@
 /* Equipment Grid */
 .equipment-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
 }
 
 .equipment-item {
@@ -180,7 +187,7 @@
   font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
 }
 
-.equipment-item input[type="checkbox"]:checked + label {
+.equipment-item input[type="checkbox"]:checked+label {
   color: #4f46e5;
   font-weight: 600;
 }
@@ -246,15 +253,21 @@
 }
 
 /* Active filter indicator on button */
-.filter-btn.has-filters {
+.equipment-filter-button.active {
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
 }
 
-.filter-btn.has-filters:hover {
+.equipment-filter-button.active:hover {
   background: linear-gradient(135deg, #059669 0%, #047857 100%);
 }
 
 /* Responsive Design */
+@media screen and (max-width: 900px) {
+  .equipment-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 @media screen and (max-width: 768px) {
   .equipment-filter-content {
     width: 95%;
@@ -299,7 +312,7 @@
     grid-template-columns: 1fr;
   }
 
-  .filter-btn {
+  .equipment-filter-button {
     width: 100%;
     justify-content: center;
     padding: 14px 20px;

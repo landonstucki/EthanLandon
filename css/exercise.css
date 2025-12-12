@@ -1,15 +1,16 @@
-main{ /* Reset Grid from Home Page */
+main {
+  /* Reset Grid from Home Page */
   grid: none;
 }
 
-#muscle-group-full{
-  display:grid;
+#muscle-group-full {
+  display: grid;
   grid-template-rows: auto auto auto;
   gap: 10px;
 }
 
-h1{
-  text-align:center;
+h1 {
+  text-align: center;
   font-size: 2.5rem;
   color: #333;
   margin-bottom: 20px;
@@ -20,7 +21,7 @@ h1{
   animation: fade-in-up 0.8s ease-out;
 }
 
-@keyframes fade-in-up{
+@keyframes fade-in-up {
   0% {
     opacity: 0;
     transform: translateY(30px);
@@ -48,8 +49,10 @@ h1{
   font-size: 1em;
 
   /* underline setup */
-  text-decoration: underline transparent 2px; /* invisible underline at rest */
-  text-underline-offset: 4px; /* small gap below the text */
+  text-decoration: underline transparent 2px;
+  /* invisible underline at rest */
+  text-underline-offset: 4px;
+  /* small gap below the text */
   transition:
     color 0.3s ease,
     background-color 0.3s ease,
@@ -58,19 +61,21 @@ h1{
 
 #muscle-groups-selector button.clicked {
   background-color: rgb(68 142 68 / 34%);
-  text-decoration-color: rgb(68 142 68 / 100%); /* keep underline when selected */
+  text-decoration-color: rgb(68 142 68 / 100%);
+  /* keep underline when selected */
 }
 
-@media (width >= 769px){
+@media (width >=769px) {
   #muscle-groups-selector button:hover {
     cursor: pointer;
     color: rgb(88 53 1 / 78.8%);
     background-color: rgb(225 255 0 / 25%);
-    text-decoration-color: rgb(88 53 1 / 78.8%); /* underline fades in */
+    text-decoration-color: rgb(88 53 1 / 78.8%);
+    /* underline fades in */
   }
 }
 
-/* Override hover state for click. */ 
+/* Override hover state for click. */
 
 #muscle-groups-selector button.clicked,
 #muscle-groups-selector button.clicked:hover {
@@ -183,20 +188,44 @@ h1{
   animation: cardSlideUp 0.4s ease-out backwards;
 }
 
-.exercise:nth-child(1) { animation-delay: 0.05s; }
-.exercise:nth-child(2) { animation-delay: 0.1s; }
-.exercise:nth-child(3) { animation-delay: 0.15s; }
-.exercise:nth-child(4) { animation-delay: 0.2s; }
-.exercise:nth-child(5) { animation-delay: 0.25s; }
-.exercise:nth-child(6) { animation-delay: 0.3s; }
-.exercise:nth-child(7) { animation-delay: 0.35s; }
-.exercise:nth-child(8) { animation-delay: 0.4s; }
+.exercise:nth-child(1) {
+  animation-delay: 0.05s;
+}
+
+.exercise:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.exercise:nth-child(3) {
+  animation-delay: 0.15s;
+}
+
+.exercise:nth-child(4) {
+  animation-delay: 0.2s;
+}
+
+.exercise:nth-child(5) {
+  animation-delay: 0.25s;
+}
+
+.exercise:nth-child(6) {
+  animation-delay: 0.3s;
+}
+
+.exercise:nth-child(7) {
+  animation-delay: 0.35s;
+}
+
+.exercise:nth-child(8) {
+  animation-delay: 0.4s;
+}
 
 @keyframes cardSlideUp {
   from {
     opacity: 0;
     transform: translateY(30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -209,6 +238,7 @@ h1{
     max-height: 0;
     transform: scaleY(0.8);
   }
+
   to {
     opacity: 1;
     max-height: 500px;
@@ -218,9 +248,12 @@ h1{
 
 /* Pulse animation for loading states */
 @keyframes pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.5;
   }
@@ -243,7 +276,7 @@ h1{
   left: 50%;
   width: 0;
   height: 0;
-  background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
   transform: translate(-50%, -50%);
   transition: width 0.4s ease, height 0.4s ease;
   border-radius: 50%;
@@ -265,22 +298,25 @@ h1{
     opacity: 0;
     transform: scale(0.9);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
   }
 }
 
-@media (hover:none),screen and (width <= 768px) {
+@media (hover:none),
+screen and (width <=768px) {
+
   /* Styles applied when the screen width is 768px or more */
-  main{
-    min-height:100%;
+  main {
+    min-height: 100%;
   }
 
-  #muscle-groups-selector{
-    gap:5px;
-    margin-left:10px;
-    margin-right:10px;
+  #muscle-groups-selector {
+    gap: 5px;
+    margin-left: 10px;
+    margin-right: 10px;
   }
 
 
@@ -311,4 +347,99 @@ h1{
   margin: 10px 0;
   border-left: 4px solid #d32f2f;
   font-size: 0.95rem;
+}
+
+/* ============================
+   SCROLL TO TOP BUTTON
+============================ */
+.scroll-to-top {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  color: white;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+  z-index: 1000;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease, background 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scroll-to-top.hidden {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+}
+
+.scroll-to-top:hover {
+  background: linear-gradient(135deg, #0056b3 0%, #003d82 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 123, 255, 0.5);
+}
+
+.scroll-to-top:active {
+  transform: translateY(-1px);
+}
+
+/* ============================
+   LOADING INDICATOR (CENTERED)
+============================ */
+.loading-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 30px 20px;
+  text-align: center;
+  color: #666;
+  font-size: 1.1em;
+  margin: 20px 0;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #007bff;
+  /* Changed from green to blue for professional look */
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.no-results-message {
+  text-align: center;
+  color: #999;
+  font-size: 1.1em;
+  margin: 20px 0;
+  padding: 20px;
+}
+
+@media (max-width: 768px) {
+  .scroll-to-top {
+    bottom: 20px;
+    right: 20px;
+    width: 45px;
+    height: 45px;
+    font-size: 20px;
+  }
 }
