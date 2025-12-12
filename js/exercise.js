@@ -130,96 +130,6 @@ function createExerciseCard(exercise, muscleGroup, index) {
   `;
 }
 
-// Wiring up all of the top muscle group buttons.
-buttons.forEach((button) => {
-  button.addEventListener("click", async () => {
-    if (!results) return; 
-    
-    const group = button.dataset.group;
-    const muscles = muscleGroups[group];
-    if (!muscles) return;
-
-    // Visual toggle for the button itself so I can see what's active.
-    button.classList.toggle("clicked");
-
-    // If I'm turning a group off, kill its entire section and clean up state.
-    if (!button.classList.contains("clicked")) {
-      loadedGroups.delete(group);
-      delete exerciseData.allExercises[group];
-      const section = document.getElementById(`section-${group}`);
-      if (section) section.remove();
-      return;
-    }
-
-    loadedGroups.add(group);
-
-    // Create a temporary "loading" section for this group.
-    const groupSection = document.createElement("div");
-    groupSection.id = `section-${group}`;
-    groupSection.innerHTML = `<h2>${group}</h2><p style="text-align: center; color: #666; font-size: 1.1em; margin: 20px 0;">Loading ${group} exercises…</p>`;
-    results.appendChild(groupSection);
-
-    const allExercises = [];
-
-    // For each muscle under this group, fetch its exercises.
-    // This will probably pull duplicates; I de-dupe later.
-    for (const muscle of muscles) {
-      const exercises = await fetchExercisesByMuscle(muscle);
-      if (exercises && exercises.length > 0) {
-        allExercises.push(...exercises);
-      }
-      // Friendly pause so I don't hammer the API with 10 requests instantly.
-      await delay(300);
-    }
-
-    // Here I'm deduping exercises. The same move might appear under multiple
-    // muscles, so I use this combo key to treat those as the same.
-    const key = (ex) =>
-      `${ex.exerciseId || ex.name}-${Array.isArray(ex.equipments) ? ex.equipments.join(',') : ex.equipments || 'none'}`;
-
-    const unique = Array.from(new Map(allExercises.map(ex => [key(ex), ex])).values());
-
-    if (unique.length === 0) {
-      groupSection.innerHTML = `<h2>${group}</h2><p style="text-align: center; color: #999; font-size: 1.1em; margin: 20px 0;">No exercises found.</p>`;
-      return;
-    }
-
-    // Keeping around the cleaned-up list in case I want it later.
-    exerciseData.allExercises[group] = unique;
-
-    // Apply equipment filter if active
-    const filteredExercises = filterByEquipment(unique);
-
-    if (filteredExercises.length === 0) {
-      groupSection.innerHTML = `<h2>${group}</h2><p style="text-align: center; color: #999; font-size: 1.1em; margin: 20px 0;">No exercises found with selected equipment.</p>`;
-      return;
-    }
-
-    // Replace the "Loading..." message with the actual cards.
-    groupSection.innerHTML = `
-      <h2>${group}</h2>
-      <div class="exercise-group">
-        ${filteredExercises.map((ex, index) => createExerciseCard(ex, group, index)).join("")}
-      </div>
-    `;
-
-    // Hook up the Show/Hide Instructions buttons inside this group.
-    groupSection.querySelectorAll(".show-instructions").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const exerciseId = btn.dataset.exerciseId;
-        if (!exerciseId) return;
-
-        const instructionsDiv = document.getElementById(`instructions-${exerciseId}`);
-        if (!instructionsDiv) return;
-        
-        const showing = instructionsDiv.style.display === "block";
-        instructionsDiv.style.display = showing ? "none" : "block";
-        btn.textContent = showing ? "Show Instructions" : "Hide Instructions";
-      });
-    });
-  });
-});
-
 // ============================
 // EQUIPMENT FILTER FUNCTIONALITY
 // ============================
@@ -415,8 +325,6 @@ if (clearFiltersBtn) {
     });
     updateSelectedCount();
   });
-}
-
 // Initialize equipment filter
 export function initExercisePage() {
   // Initialize DOM elements
@@ -427,6 +335,96 @@ export function initExercisePage() {
   if (!results) {
     console.error("exercise-results element not found");
   }
+  
+  // Setup muscle group button listeners
+  buttons.forEach((button) => {
+    button.addEventListener("click", async () => {
+      if (!results) return; 
+      
+      const group = button.dataset.group;
+      const muscles = muscleGroups[group];
+      if (!muscles) return;
+
+      // Visual toggle for the button itself so I can see what's active.
+      button.classList.toggle("clicked");
+
+      // If I'm turning a group off, kill its entire section and clean up state.
+      if (!button.classList.contains("clicked")) {
+        loadedGroups.delete(group);
+        delete exerciseData.allExercises[group];
+        const section = document.getElementById(`section-${group}`);
+        if (section) section.remove();
+        return;
+      }
+
+      loadedGroups.add(group);
+
+      // Create a temporary "loading" section for this group.
+      const groupSection = document.createElement("div");
+      groupSection.id = `section-${group}`;
+      groupSection.innerHTML = `<h2>${group}</h2><p style="text-align: center; color: #666; font-size: 1.1em; margin: 20px 0;">Loading ${group} exercises…</p>`;
+      results.appendChild(groupSection);
+
+      const allExercises = [];
+
+      // For each muscle under this group, fetch its exercises.
+      // This will probably pull duplicates; I de-dupe later.
+      for (const muscle of muscles) {
+        const exercises = await fetchExercisesByMuscle(muscle);
+        if (exercises && exercises.length > 0) {
+          allExercises.push(...exercises);
+        }
+        // Friendly pause so I don't hammer the API with 10 requests instantly.
+        await delay(300);
+      }
+
+      // Here I'm deduping exercises. The same move might appear under multiple
+      // muscles, so I use this combo key to treat those as the same.
+      const key = (ex) =>
+        `${ex.exerciseId || ex.name}-${Array.isArray(ex.equipments) ? ex.equipments.join(',') : ex.equipments || 'none'}`;
+
+      const unique = Array.from(new Map(allExercises.map(ex => [key(ex), ex])).values());
+
+      if (unique.length === 0) {
+        groupSection.innerHTML = `<h2>${group}</h2><p style="text-align: center; color: #999; font-size: 1.1em; margin: 20px 0;">No exercises found.</p>`;
+        return;
+      }
+
+      // Keeping around the cleaned-up list in case I want it later.
+      exerciseData.allExercises[group] = unique;
+
+      // Apply equipment filter if active
+      const filteredExercises = filterByEquipment(unique);
+
+      if (filteredExercises.length === 0) {
+        groupSection.innerHTML = `<h2>${group}</h2><p style="text-align: center; color: #999; font-size: 1.1em; margin: 20px 0;">No exercises found with selected equipment.</p>`;
+        return;
+      }
+
+      // Replace the "Loading..." message with the actual cards.
+      groupSection.innerHTML = `
+        <h2>${group}</h2>
+        <div class="exercise-group">
+          ${filteredExercises.map((ex, index) => createExerciseCard(ex, group, index)).join("")}
+        </div>
+      `;
+
+      // Hook up the Show/Hide Instructions buttons inside this group.
+      groupSection.querySelectorAll(".show-instructions").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const exerciseId = btn.dataset.exerciseId;
+          if (!exerciseId) return;
+
+          const instructionsDiv = document.getElementById(`instructions-${exerciseId}`);
+          if (!instructionsDiv) return;
+          
+          const showing = instructionsDiv.style.display === "block";
+          instructionsDiv.style.display = showing ? "none" : "block";
+          btn.textContent = showing ? "Show Instructions" : "Hide Instructions";
+        });
+      });
+    });
+  });
   
   // Initialize equipment filter
   initEquipmentFilter();
