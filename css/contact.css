@@ -1,5 +1,6 @@
 /* Contact Page Specific Styles */
-@import url('home.css'); /* Import home.css for navigation and header styles */
+@import url('home.css');
+/* Import home.css for navigation and header styles */
 
 /* Contact Page Styles */
 
@@ -47,8 +48,15 @@ main {
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 .page-top-info h1 {
@@ -144,7 +152,7 @@ main {
 }
 
 .contact-form-wrapper:hover {
-  transform: translateY(-5px);
+  /* Removed transform to prevent distracting movement while filling out form */
   box-shadow: 0 25px 70px rgb(0 0 0 / 15%), 0 10px 30px rgb(0 0 0 / 8%);
 }
 
@@ -328,7 +336,7 @@ main {
 }
 
 .contact-info:hover {
-  transform: translateY(-5px);
+  /* Removed transform to prevent distracting movement */
   box-shadow: 0 25px 70px rgb(0 0 0 / 15%), 0 10px 30px rgb(0 0 0 / 8%);
 }
 
@@ -517,65 +525,65 @@ main {
 }
 
 /* Mobile Responsive Design */
-@media screen and (width <= 768px) {
+@media screen and (width <=768px) {
   .container {
     padding: 0 20px;
   }
-    
+
   .contact-container {
     grid-template-columns: 1fr;
     gap: 40px;
   }
-    
+
   .contact-form,
   .contact-info {
     padding: 30px 20px;
   }
-    
+
   .form-row {
     grid-template-columns: 1fr;
     gap: 0;
   }
-    
+
   .social-links {
     grid-template-columns: 1fr;
     gap: 10px;
   }
-    
+
   .contact-item {
     flex-direction: column;
     text-align: center;
     padding: 20px;
   }
-    
+
   .contact-icon {
     margin-right: 0;
     margin-bottom: 15px;
     font-size: 2.5rem;
   }
-    
+
   .page-top-info {
     padding: 40px 0;
   }
-    
+
   .page-top-info h1 {
     font-size: 2rem;
   }
-    
+
   .contact-section {
     padding: 50px 0;
   }
-    
+
   .contact-form-wrapper,
   .contact-info {
     margin: 0 10px;
   }
-    
+
   .submit-btn {
     padding: 20px 40px;
     font-size: 1.2rem;
   }
-    
+
   .form-group input,
   .form-group select,
   .form-group textarea {
@@ -585,16 +593,16 @@ main {
 }
 
 /* Tablet Responsive Design */
-@media screen and (width <= 1024px) and (width >= 769px) {
+@media screen and (width <=1024px) and (width >=769px) {
   .contact-container {
     gap: 60px;
   }
-    
+
   .contact-form,
   .contact-info {
     padding: 35px;
   }
-    
+
   .form-row {
     gap: 15px;
   }
@@ -637,9 +645,21 @@ main {
 
 /* Shake animation for errors */
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  20%, 60% { transform: translateX(-5px); }
-  40%, 80% { transform: translateX(5px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  20%,
+  60% {
+    transform: translateX(-5px);
+  }
+
+  40%,
+  80% {
+    transform: translateX(5px);
+  }
 }
 
 @keyframes slideInUp {
@@ -647,6 +667,7 @@ main {
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -657,6 +678,7 @@ main {
   from {
     opacity: 1;
   }
+
   to {
     opacity: 0;
   }

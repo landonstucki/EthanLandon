@@ -36,7 +36,12 @@ export function initNavigation() {
 
   // Close menu when clicking outside
   document.addEventListener('click', (e) => {
-    if (!nav.contains(e.target) && !hamburger.contains(e.target)) {
+    const workoutBar = document.getElementById('workout-bar');
+    const isClickOutside = !nav.contains(e.target) &&
+      !hamburger.contains(e.target) &&
+      !workoutBar?.contains(e.target);
+
+    if (isClickOutside) {
       hamburger.setAttribute('aria-expanded', 'false');
       hamburger.classList.remove('active');
       dropdown.classList.remove('open');

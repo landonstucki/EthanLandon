@@ -24,10 +24,15 @@
   border-radius: 8px;
   cursor: pointer;
   z-index: 5501;
-  position: absolute;
+  position: fixed;
   top: 15px;
   right: 15px;
-  transition: background 0.3s ease, transform 0.2s ease;
+  transition: background 0.3s ease, transform 0.2s ease, top 0.3s ease;
+}
+
+/* Shift hamburger down when workout bar is active */
+body.workout-bar-active .hamburger-menu {
+  top: 75px;
 }
 
 .hamburger-menu:hover {
@@ -98,7 +103,7 @@
 @media screen and (max-width: 768px) {
   .hamburger-menu {
     display: flex;
-    position: absolute;
+    position: fixed;
     top: 15px;
     right: 15px;
     z-index: 5501;

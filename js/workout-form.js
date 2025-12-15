@@ -118,6 +118,7 @@ function persistState() {
 function updateWorkoutBarVisibility() {
   if (selectedWorkouts.length === 0) {
     workoutBar.classList.add("hidden");
+    document.body.classList.remove("workout-bar-active");
     barExpanded = false;
     workoutBarBody.classList.remove("open");
     workoutBarChevron.textContent = "▼";
@@ -125,6 +126,7 @@ function updateWorkoutBarVisibility() {
     workoutBarCount.textContent = "(0)";
   } else {
     workoutBar.classList.remove("hidden");
+    document.body.classList.add("workout-bar-active");
   }
 }
 
