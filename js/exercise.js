@@ -477,6 +477,7 @@ export function initExercisePage() {
   if (filterBtn) {
     filterBtn.addEventListener('click', () => {
       filterModal.classList.remove('hidden');
+      document.body.classList.add('filter-modal-open');
       // Sync checkboxes with current selection
       equipmentGrid.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
         checkbox.checked = selectedEquipment.has(checkbox.value);
@@ -488,6 +489,7 @@ export function initExercisePage() {
   if (closeFilterBtn) {
     closeFilterBtn.addEventListener('click', () => {
       filterModal.classList.add('hidden');
+      document.body.classList.remove('filter-modal-open');
     });
   }
 
@@ -495,6 +497,7 @@ export function initExercisePage() {
     filterModal.addEventListener('click', (e) => {
       if (e.target === filterModal) {
         filterModal.classList.add('hidden');
+        document.body.classList.remove('filter-modal-open');
       }
     });
   }
@@ -510,6 +513,7 @@ export function initExercisePage() {
       updateFilterButton();
       reapplyFilters();
       filterModal.classList.add('hidden');
+      document.body.classList.remove('filter-modal-open');
     });
   }
 

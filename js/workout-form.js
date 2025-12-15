@@ -214,9 +214,11 @@ function toggleWorkoutBarExpansion() {
   if (barExpanded) {
     workoutBarBody.classList.add("open");
     workoutBarChevron.textContent = "▲";
+    document.body.classList.add("workout-bar-expanded");
   } else {
     workoutBarBody.classList.remove("open");
     workoutBarChevron.textContent = "▼";
+    document.body.classList.remove("workout-bar-expanded");
   }
 }
 

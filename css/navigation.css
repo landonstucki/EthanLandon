@@ -35,6 +35,20 @@ body.workout-bar-active .hamburger-menu {
   top: 75px;
 }
 
+/* Hide hamburger on mobile when workout bar dropdown is expanded to prevent overlap */
+@media screen and (max-width: 768px) {
+  body.workout-bar-expanded .hamburger-menu {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* Also hide when equipment filter modal is open */
+  body.filter-modal-open .hamburger-menu {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
 .hamburger-menu:hover {
   background: linear-gradient(135deg, #444 0%, #2a2a2a 100%);
   transform: scale(1.05);
