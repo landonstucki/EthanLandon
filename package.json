@@ -1,4 +1,15 @@
 {
+  "name": "webfit",
+  "version": "1.0.0",
+  "private": true,
+  "description": "WebFit - browse exercises by muscle group and build a shareable workout.",
+  "scripts": {
+    "start": "node scripts/serve.mjs",
+    "dev": "node scripts/serve.mjs",
+    "lint": "npm run lint:js && npm run lint:css",
+    "lint:js": "eslint js",
+    "lint:css": "stylelint \"css/**/*.css\""
+  },
   "devDependencies": {
     "@eslint/css": "^0.14.0",
     "@eslint/js": "^9.39.0",

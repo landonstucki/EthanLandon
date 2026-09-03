@@ -1,5 +1,7 @@
 // ====== "My Workout" bar + How-To modal logic ======
 
+import { findExerciseByName } from "./modules/exerciseApi.js";
+
 // Local storage key so I know where I'm saving this stuff.
 const LOCAL_STORAGE_KEY = "webfit-workout-state";
 
@@ -334,70 +336,20 @@ function openHowToModal(workout) {
   howtoModalGif.src = workout.gifUrl;
   howtoModalGif.alt = workout.displayName || "Exercise how-to";
   howtoModal.classList.remove("hidden");
+  // Mirrors the equipment modal: locks page scroll and hides the hamburger.
+  document.body.classList.add("howto-modal-open");
 }
 
 /**
- * Helper that tries to find the matching exercise for a workout
- * by using the group ("Legs") → sub-muscles → API, and then
- * comparing the names. This is for the "shared link on a fresh device" case.
+ * Helper that tries to find the matching exercise for a workout so we can get
+ * its demo GIF. This is for the "shared link on a fresh device" case, where the
+ * URL carries the name and group but deliberately not the gifUrl.
  *
- * It uses:
- * - muscleGroups (from exercise.js)
- * - fetchExercisesByMuscle (from exercise.js)
- * - delay if available, otherwise a manual sleep
+ * findExerciseByName hits GET /exercises/search first (one request) and only
+ * falls back to scanning the muscle group if the name can't be resolved.
  */
-async function findExerciseForWorkout(workout) {
-  if (!workout.muscleGroup || typeof muscleGroups === "undefined") {
-    return null;
-  }
-
-  const groupName = workout.muscleGroup;
-  const subMuscles = muscleGroups[groupName];
-
-  if (!Array.isArray(subMuscles) || subMuscles.length === 0) {
-    return null;
-  }
-
-  let allExercises = [];
-
-  // If delay exists from exercise.js, use it. If not, roll my own.
-  const sleep =
-    typeof delay === "function"
-      ? delay
-      : (ms) => new Promise((res) => setTimeout(res, ms));
-
-  // Fetch all exercises for all sub-muscles in this group.
-  for (const muscle of subMuscles) {
-    try {
-      const list = await fetchExercisesByMuscle(muscle);
-      if (Array.isArray(list) && list.length > 0) {
-        allExercises.push(...list);
-      }
-    } catch (err) {
-      console.error("Error fetching exercises for muscle:", muscle, err);
-    }
-    await sleep(150);
-  }
-
-  if (!allExercises.length) {
-    return null;
-  }
-
-  // Optional dedupe like in exercise.js
-  const key = (ex) =>
-    `${ex.exerciseId || ex.name}-${Array.isArray(ex.equipments) ? ex.equipments.join(",") : ex.equipments || "none"
-    }`;
-
-  const unique = Array.from(new Map(allExercises.map((ex) => [key(ex), ex])).values());
-
-  // Try to match by name (case-insensitive).
-  const match = unique.find(
-    (ex) =>
-      ex.name &&
-      ex.name.toLowerCase() === (workout.name || "").toLowerCase()
-  );
-
-  return match || null;
+function findExerciseForWorkout(workout) {
+  return findExerciseByName(workout.name, workout.muscleGroup);
 }
 
 /**
@@ -446,6 +398,7 @@ async function handleHowToClick(workout) {
 function closeHowToModal() {
   if (!howtoModal) return;
   howtoModal.classList.add("hidden");
+  document.body.classList.remove("howto-modal-open");
   if (howtoModalGif) {
     howtoModalGif.src = "";
   }

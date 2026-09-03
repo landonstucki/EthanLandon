@@ -1,224 +1,212 @@
-/* ============================
-   NAVIGATION & HAMBURGER MENU
-============================ */
+/* ============================================================
+   WebFit - Navigation
+   navigation.js builds this structure at runtime:
 
-/* Ensure header doesn't clip dropdown on mobile */
-@media screen and (max-width: 768px) {
-  header {
-    overflow: visible !important;
-  }
+     <button class="hamburger-menu">   <- injected before <nav>
+       <span class="hamburger-line"> x3
+     </button>
+     <nav>
+       <div class="nav-dropdown">      <- wraps the original links
+         <a> ... </a>
+       </div>
+     </nav>
+
+   It toggles .active on the button and .open on the dropdown.
+   ============================================================ */
+
+nav {
+  display: flex;
+  align-items: center;
 }
 
-/* Hamburger Button - visible on mobile by default */
-.hamburger-menu {
+.nav-dropdown {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
   align-items: center;
+  gap: 4px;
+}
+
+.nav-dropdown a {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  border-radius: var(--r-sm);
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+  font-weight: 550;
+  letter-spacing: -0.01em;
+  transition:
+    color var(--dur-fast) var(--ease),
+    background-color var(--dur-fast) var(--ease);
+}
+
+.nav-dropdown a:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+/* Animated underline on hover / for the current page. */
+.nav-dropdown a::after {
+  content: "";
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 3px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--dur) var(--ease-out);
+}
+
+.nav-dropdown a:hover::after {
+  transform: scaleX(1);
+}
+
+.nav-dropdown a[aria-current="page"] {
+  color: var(--text);
+}
+
+.nav-dropdown a[aria-current="page"]::after {
+  transform: scaleX(1);
+}
+
+/* ------------------------------------------------------------
+   HAMBURGER (hidden on desktop)
+------------------------------------------------------------ */
+.hamburger-menu {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   gap: 5px;
   width: 44px;
   height: 44px;
-  padding: 8px;
-  background: linear-gradient(135deg, #333 0%, #1a1a1a 100%);
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  z-index: 5501;
-  position: fixed;
-  top: 15px;
-  right: 15px;
-  transition: background 0.3s ease, transform 0.2s ease, top 0.3s ease;
-}
-
-/* Shift hamburger down when workout bar is active */
-body.workout-bar-active .hamburger-menu {
-  top: 75px;
-}
-
-/* Hide hamburger on mobile when workout bar dropdown is expanded to prevent overlap */
-@media screen and (max-width: 768px) {
-  body.workout-bar-expanded .hamburger-menu {
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  /* Also hide when equipment filter modal is open */
-  body.filter-modal-open .hamburger-menu {
-    opacity: 0;
-    pointer-events: none;
-  }
+  margin-left: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  transition:
+    background-color var(--dur) var(--ease),
+    border-color var(--dur) var(--ease);
 }
 
 .hamburger-menu:hover {
-  background: linear-gradient(135deg, #444 0%, #2a2a2a 100%);
-  transform: scale(1.05);
-}
-
-.hamburger-menu:focus {
-  outline: 2px solid #007bff;
-  outline-offset: 2px;
+  border-color: var(--border-strong);
 }
 
 .hamburger-line {
   display: block;
-  width: 24px;
-  height: 3px;
-  background-color: #fff;
+  width: 20px;
+  height: 2px;
   border-radius: 2px;
-  transition: transform 0.3s ease, opacity 0.3s ease, background-color 0.3s ease;
+  background: var(--text);
+  transition:
+    transform var(--dur) var(--ease-out),
+    opacity var(--dur-fast) var(--ease);
 }
 
-/* Hamburger Animation when active */
+/* Morph the three bars into an X. */
+.hamburger-menu.active {
+  background: var(--accent-soft);
+  border-color: var(--accent-ring);
+}
+
 .hamburger-menu.active .hamburger-line:nth-child(1) {
-  transform: translateY(8px) rotate(45deg);
+  transform: translateY(7px) rotate(45deg);
 }
 
 .hamburger-menu.active .hamburger-line:nth-child(2) {
   opacity: 0;
-  transform: scaleX(0);
+  transform: scaleX(0.4);
 }
 
 .hamburger-menu.active .hamburger-line:nth-child(3) {
-  transform: translateY(-8px) rotate(-45deg);
+  transform: translateY(-7px) rotate(-45deg);
 }
 
-/* Navigation Dropdown Container - hidden on mobile by default */
-.nav-dropdown {
-  display: none;
-  gap: 2em;
-  transition: all 0.3s ease;
-}
-
-/* Desktop Navigation */
-@media screen and (min-width: 769px) {
+/* ------------------------------------------------------------
+   MOBILE: nav collapses into a dropdown panel
+------------------------------------------------------------ */
+@media (width <= 800px) {
   .hamburger-menu {
-    display: none !important;
-  }
-
-  .nav-dropdown {
-    display: flex !important;
-    position: static;
-    background: transparent;
-    box-shadow: none;
-    padding: 0;
-    flex-direction: row;
-    opacity: 1;
-    visibility: visible;
-    transform: none;
+    display: flex;
+    order: 2;
   }
 
   nav {
-    justify-content: center;
-    display: flex;
+    order: 3;
   }
-}
 
-/* Mobile Navigation */
-@media screen and (max-width: 768px) {
-  .hamburger-menu {
-    display: flex;
+  .nav-dropdown {
     position: fixed;
-    top: 15px;
-    right: 15px;
-    z-index: 5501;
-  }
-
-  nav {
-    position: relative;
-    padding: 10px;
-    justify-content: flex-start;
-    width: 100%;
-    /* Ensure nav has full width so dropdown can span */
-  }
-
-  .nav-dropdown {
-    display: flex;
-    position: absolute;
-    top: 100%;
+    top: var(--header-h);
     right: 0;
     left: 0;
+    z-index: 899;
     flex-direction: column;
-    background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
-    padding: 0;
-    gap: 0;
-    border-radius: 0 0 12px 12px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-    opacity: 0;
+    align-items: stretch;
+    gap: 2px;
+    padding: 10px clamp(1rem, 0.6rem + 1.8vw, 2rem) 16px;
+    border-bottom: 1px solid var(--border);
+
+    /* Opaque on purpose. This panel sits directly over page copy, and any
+       translucency (even with a backdrop blur, which some browsers skip)
+       leaves the headings behind it showing through the links. */
+    background: var(--surface);
+    box-shadow: var(--shadow-lg);
+
+    /* Collapsed: clipped away but still focusable-safe once open. */
     visibility: hidden;
+    opacity: 0;
     transform: translateY(-10px);
-    transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
-    z-index: 5500;
-    overflow: hidden;
+    pointer-events: none;
+    transition:
+      opacity var(--dur) var(--ease),
+      transform var(--dur) var(--ease-out),
+      visibility 0s linear var(--dur);
   }
 
   .nav-dropdown.open {
-    opacity: 1;
     visibility: visible;
+    opacity: 1;
     transform: translateY(0);
+    pointer-events: auto;
+    transition-delay: 0s;
   }
 
   .nav-dropdown a {
-    display: block;
-    padding: 15px 20px;
-    text-align: center;
-    color: #fff !important;
-    text-decoration: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    transition: background-color 0.2s ease, padding-left 0.2s ease;
-    font-size: 1.1em;
+    padding: 14px 16px;
+    border-radius: var(--r-sm);
+    font-size: 1rem;
+    font-weight: 600;
   }
 
-  .nav-dropdown a:last-child {
-    border-bottom: none;
+  .nav-dropdown a::after {
+    display: none;
   }
 
-  .nav-dropdown a:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    padding-left: 30px;
-    color: #4fc3f7 !important;
+  .nav-dropdown a[aria-current="page"] {
+    background: var(--accent-soft);
+    color: var(--accent);
   }
 
-  /* Slide-in animation for menu items */
+  /* Stagger the links in as the panel opens. */
   .nav-dropdown.open a {
-    animation: slideInRight 0.3s ease forwards;
+    animation: fade-in-up var(--dur) var(--ease-out) backwards;
   }
 
-  .nav-dropdown.open a:nth-child(1) {
-    animation-delay: 0.05s;
-  }
-
-  .nav-dropdown.open a:nth-child(2) {
-    animation-delay: 0.1s;
-  }
-
-  .nav-dropdown.open a:nth-child(3) {
-    animation-delay: 0.15s;
-  }
-
-  .nav-dropdown.open a:nth-child(4) {
-    animation-delay: 0.2s;
-  }
-
-  .nav-dropdown.open a:nth-child(5) {
-    animation-delay: 0.25s;
-  }
+  .nav-dropdown.open a:nth-child(1) { animation-delay: 40ms; }
+  .nav-dropdown.open a:nth-child(2) { animation-delay: 80ms; }
+  .nav-dropdown.open a:nth-child(3) { animation-delay: 120ms; }
+  .nav-dropdown.open a:nth-child(4) { animation-delay: 160ms; }
 }
 
-@keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-/* Focus styles for accessibility */
-.nav-dropdown a:focus {
-  outline: 2px solid #007bff;
-  outline-offset: -2px;
-  background-color: rgba(255, 255, 255, 0.1);
+/* While a modal owns the screen, the hamburger must not float over
+   its backdrop (the menu sits at z-index 899, modals at 1000). */
+body.filter-modal-open .hamburger-menu,
+body.howto-modal-open .hamburger-menu {
+  opacity: 0;
+  pointer-events: none;
 }

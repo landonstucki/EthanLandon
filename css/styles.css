@@ -1,3 +1,12 @@
-@import url('home.css'); /* Home Page Import */
-@import url('exercise.css');
-@import url('workout-modal.css');
+/* ============================================================
+   WebFit - aggregate stylesheet
+
+   The pages link their stylesheets individually (base first, then
+   navigation, then whatever that page needs). This file is kept as
+   a single-link convenience entry that pulls in the shared layer.
+
+   Link either this file OR css/base.css - never both.
+   ============================================================ */
+
+@import url("base.css");
+@import url("navigation.css");

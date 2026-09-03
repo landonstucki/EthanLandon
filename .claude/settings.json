@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s \"https://oss.exercisedb.dev/api/v1/exercises?limit=2\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" \"https://oss.exercisedb.dev/api/v1/muscles\")",
+      "Bash(curl -s \"https://oss.exercisedb.dev/api/v1/muscles\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" \"https://oss.exercisedb.dev/api/v1/muscles/biceps/exercises?offset=0&limit=5\")",
+      "Bash(curl -s \"https://oss.exercisedb.dev/api/v1/muscles/biceps/exercises?offset=0&limit=5\")",
+      "Bash(curl -s \"https://oss.exercisedb.dev/api/v1/equipments\")",
+      "Bash(curl -s \"https://oss.exercisedb.dev/openapi.json\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" \"https://oss.exercisedb.dev/docs\")",
+      "Bash(curl -s -D - -o /dev/null https://oss.exercisedb.dev/api/v1/exercises?limit=1)",
+      "WebFetch(domain:oss.exercisedb.dev)"
+    ]
+  }
+}

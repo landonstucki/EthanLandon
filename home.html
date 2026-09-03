@@ -1,55 +1,244 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebFit - Home</title>
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/navigation.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+    content="WebFit is a free workout builder - browse exercises by muscle group, learn proper form, and share custom routines with friends. No app downloads, no subscriptions.">
+  <meta name="theme-color" content="#080b11" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#f6f8fb" media="(prefers-color-scheme: light)">
+  <title>WebFit - Build and Share Custom Workouts</title>
+  <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/navigation.css">
+  <link rel="stylesheet" href="css/home.css">
 </head>
+
 <body>
-    <header>
-    <img id = "hero-banner" alt = "WebFit Main Banner" src = "images/bannerimg.png">
-    <p id="banner-text">WebFit</p>
-    <nav>
-        <a href = "home.html">Home</a>
-        <a href = "exercise.html">Exercise</a>
-        <a href = "contact.html">Contact</a>
-    </nav>
-    </header>
+  <a class="skip-link" href="#main">Skip to main content</a>
 
-    <main>
-        <div class = "page-top-info">
-        <h1 id = "page-title">Welcome to WebFit</h1>
-        <p>
-        At WebFit, our team has designed a simple, user-friendly way to achieve your workout goals—together. Forget downloading endless gym apps or paying hundreds of dollars a year just to face cross-platform issues between Android and iPhone.
-        We’ve simplified fitness for you with one easy-to-use website where you can create custom workouts, learn proper form, and share your routines with friends and family effortlessly.
-        No more app clutter, no more hassle—just real fitness, made simple.
-        Let’s get fit, with WebFit.</p>
-        </div>
-        <video class = "video" controls>
-            <source src="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
-        </video>
-        <div class = right-main>
-        <p class = "text-instructions">- Instructions -<br> The easiest way to understand how to create an exercise is to watch the video on this page!<br>
-        To get started on a workout, head over to the <a href ="exercise.html">Exercise Page</a> or click the Get Started link below.<br><br>
-        1. Select the Muscle Group(s) that you would like to exercise.<br>
-        2. Look through the list of exercises provided and select the ones you would like to perform.
-        (Demonstration videos are provided for help).<br>
-        3. Add the selected exercises to your workout.<br>
-        4. Choose your Sets/Reps<br>
-        5. Get Fit!<br>
-        Feel free to share your workout with friends with the 'share' button on the exercise page</p>
-        <p><a class="get-started" href="/exercise.html">Get Started</a></p>
+  <header class="site-header">
+    <div class="container">
+      <a class="brand" href="home.html">
+        <span class="brand-mark" aria-hidden="true">⚡</span>
+        <span class="brand-text"><b>Web</b><span>Fit</span></span>
+      </a>
+      <nav aria-label="Main navigation">
+        <a href="home.html" aria-current="page">Home</a>
+        <a href="exercise.html">Exercise</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+    </div>
+  </header>
 
+  <main id="main">
+    <!-- ============ HERO ============ -->
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow"><span class="pulse-dot" aria-hidden="true"></span>Free forever - no sign-up</p>
+          <h1>Build a workout that<br><span class="text-gradient">actually fits you.</span></h1>
+          <p class="lead">
+            Pick your muscle groups, browse 1,300+ exercises with demo animations, set your reps,
+            and share the whole routine with a single link. It all runs in your browser.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary btn-lg" href="exercise.html">
+              Start building
+              <span aria-hidden="true">→</span>
+            </a>
+            <a class="btn btn-outline btn-lg" href="#how-it-works">See how it works</a>
+          </div>
+
+          <dl class="hero-stats">
+            <div class="stat">
+              <dt>Exercises</dt>
+              <dd>1,300<span>+</span></dd>
+            </div>
+            <div class="stat">
+              <dt>Muscle groups</dt>
+              <dd>8</dd>
+            </div>
+            <div class="stat">
+              <dt>Cost</dt>
+              <dd>$0</dd>
+            </div>
+          </dl>
         </div>
-    </main>
-    <script type="module">
-        import { initNavigation } from './js/navigation.js';
-        initNavigation();
-    </script>
+
+        <div class="hero-visual" aria-hidden="true">
+          <div class="hero-glow"></div>
+          <img class="hero-image" src="images/bannerimg.png" alt="" width="640" height="400" fetchpriority="high">
+          <div class="hero-chip hero-chip-1">
+            <span class="chip-icon">💪</span>
+            <div>
+              <strong>Barbell Curl</strong>
+              <small>3 sets · 10 reps</small>
+            </div>
+          </div>
+          <div class="hero-chip hero-chip-2">
+            <span class="chip-icon">🔗</span>
+            <div>
+              <strong>Link copied</strong>
+              <small>Shared with 2 friends</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FEATURES ============ -->
+    <section class="section" aria-labelledby="features-title">
+      <div class="container">
+        <div class="section-head" data-reveal>
+          <p class="eyebrow">Why WebFit</p>
+          <h2 id="features-title">Everything you need, nothing you don't</h2>
+          <p class="lead">
+            No downloads, no accounts, no cross-platform headaches. Just open the page and train.
+          </p>
+        </div>
+
+        <div class="feature-grid">
+          <article class="feature-card" data-reveal>
+            <span class="feature-icon" aria-hidden="true">🎯</span>
+            <h3>Filter by muscle &amp; gear</h3>
+            <p>Select any combination of muscle groups, then narrow the list to only the equipment you actually have.</p>
+          </article>
+
+          <article class="feature-card" data-reveal>
+            <span class="feature-icon" aria-hidden="true">🎬</span>
+            <h3>Demo for every move</h3>
+            <p>Each exercise ships with an animated demonstration and numbered, step-by-step instructions.</p>
+          </article>
+
+          <article class="feature-card" data-reveal>
+            <span class="feature-icon" aria-hidden="true">🔗</span>
+            <h3>Share with one link</h3>
+            <p>Your whole routine encodes into the URL. Send it to a friend and it rebuilds itself on their device.</p>
+          </article>
+
+          <article class="feature-card" data-reveal>
+            <span class="feature-icon" aria-hidden="true">💾</span>
+            <h3>Picks up where you left off</h3>
+            <p>Workouts save to your browser automatically, so closing the tab never costs you your progress.</p>
+          </article>
+
+          <article class="feature-card" data-reveal>
+            <span class="feature-icon" aria-hidden="true">📱</span>
+            <h3>Built for the gym floor</h3>
+            <p>A layout that works one-handed on a phone between sets, and expands on desktop when you're planning.</p>
+          </article>
+
+          <article class="feature-card" data-reveal>
+            <span class="feature-icon" aria-hidden="true">⚡</span>
+            <h3>Instant after first load</h3>
+            <p>Exercises are cached locally the first time you fetch them, so coming back is immediate.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ HOW IT WORKS ============ -->
+    <section class="section how-section" id="how-it-works" aria-labelledby="how-title">
+      <div class="container how-grid">
+        <div class="how-copy" data-reveal>
+          <p class="eyebrow">How it works</p>
+          <h2 id="how-title">From empty page to full routine in five steps</h2>
+          <p class="lead">Watch the walkthrough, or just follow along - it's quicker than reading about it.</p>
+
+          <ol class="steps">
+            <li class="step" data-reveal>
+              <span class="step-num">1</span>
+              <div>
+                <h3>Choose your muscle groups</h3>
+                <p>Tap any of the eight groups. Tap again to remove it.</p>
+              </div>
+            </li>
+            <li class="step" data-reveal>
+              <span class="step-num">2</span>
+              <div>
+                <h3>Browse the exercises</h3>
+                <p>Every card carries a demo animation, target muscles and required equipment.</p>
+              </div>
+            </li>
+            <li class="step" data-reveal>
+              <span class="step-num">3</span>
+              <div>
+                <h3>Add what you like</h3>
+                <p>Hit <em>Add Workout</em> and it drops straight into your workout bar.</p>
+              </div>
+            </li>
+            <li class="step" data-reveal>
+              <span class="step-num">4</span>
+              <div>
+                <h3>Dial in sets and reps</h3>
+                <p>Adjust each movement inline. Everything saves as you type.</p>
+              </div>
+            </li>
+            <li class="step" data-reveal>
+              <span class="step-num">5</span>
+              <div>
+                <h3>Share it and get fit</h3>
+                <p>Copy the link and send your routine to whoever's training with you.</p>
+              </div>
+            </li>
+          </ol>
+
+          <a class="btn btn-primary" href="exercise.html">Try it now <span aria-hidden="true">→</span></a>
+        </div>
+
+        <div class="how-video" data-reveal>
+          <div class="video-frame">
+            <video class="video" controls preload="metadata" playsinline poster="images/bannerimg.png">
+              <source src="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
+              Your browser doesn't support embedded video.
+            </video>
+          </div>
+          <p class="video-caption">Walkthrough - building your first WebFit routine.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CTA ============ -->
+    <section class="section">
+      <div class="container">
+        <div class="cta-panel" data-reveal>
+          <div class="cta-copy">
+            <h2>Ready to train?</h2>
+            <p class="lead">Build your first routine in about two minutes. No account, no card, no app store.</p>
+          </div>
+          <a class="btn btn-primary btn-lg" href="exercise.html">Get started <span aria-hidden="true">→</span></a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; WebFit. All Rights Reserved.</p>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="home.html">Home</a>
+        <a href="exercise.html">Exercise</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { initNavigation } from './js/navigation.js';
+    import { initScrollToTop } from './js/modules/scrollToTop.js';
+    import { initScrollReveal } from './js/modules/reveal.js';
+
+    initNavigation();
+    initScrollToTop();
+    initScrollReveal();
+  </script>
 </body>
-<footer>
-    <p>&copy; WebFit. All Rights Reserved.</p>
-</footer>
+
 </html>

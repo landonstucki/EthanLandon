@@ -200,11 +200,11 @@ export function initContactForm() {
         contactForm.parentNode.insertBefore(messageElement, contactForm.nextSibling);
 
         // Animate in
-        messageElement.style.animation = 'slideInUp 0.3s ease-out';
+        messageElement.style.animation = 'slide-in-up 0.3s ease-out';
 
         // Remove message after 5 seconds
         setTimeout(() => {
-            messageElement.style.animation = 'fadeOut 0.3s ease-out';
+            messageElement.style.animation = 'fade-out 0.3s ease-out';
             setTimeout(() => messageElement.remove(), 300);
         }, 5000);
     }

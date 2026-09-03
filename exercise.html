@@ -1,53 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WebFit - Create an Exercise</title>
-  <link rel="stylesheet" href="css/styles.css">
-  <link rel="stylesheet" href="css/workout-modal.css">
+  <meta name="description"
+    content="Browse over 1,300 exercises by muscle group, filter by the equipment you have, and build a shareable workout.">
+  <meta name="theme-color" content="#080b11" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#f6f8fb" media="(prefers-color-scheme: light)">
+  <title>WebFit - Build Your Workout</title>
+  <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://static.exercisedb.dev" crossorigin>
+
+  <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/navigation.css">
+  <link rel="stylesheet" href="css/exercise.css">
   <link rel="stylesheet" href="css/equipment-filter.css">
   <link rel="stylesheet" href="css/filter-tags.css">
+  <link rel="stylesheet" href="css/workout-modal.css">
 </head>
+
 <body>
-  <!-- Fixed Workout Bar (hidden by default until a workout is added) -->
-  <div id="workout-bar" class="workout-bar hidden">
-    <div class="workout-bar-header" id="workout-bar-toggle">
-      <div class="workout-bar-title-wrapper">
-        <input
-          id="workout-name-input"
-          type="text"
-          value="My Workout"
-          aria-label="Workout name"
-        />
-        <span id="workout-bar-count" data-count="0">(0)</span>
-      </div>
-      <span class="workout-bar-chevron">▼</span>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="container">
+      <a class="brand" href="home.html">
+        <span class="brand-mark" aria-hidden="true">⚡</span>
+        <span class="brand-text"><b>Web</b><span>Fit</span></span>
+      </a>
+      <nav aria-label="Main navigation">
+        <a href="home.html">Home</a>
+        <a href="exercise.html" aria-current="page">Exercise</a>
+        <a href="contact.html">Contact</a>
+      </nav>
     </div>
+  </header>
 
-    <!-- Everything below is part of the dropdown body -->
-    <div id="workout-bar-body" class="workout-bar-body">
-      <div id="workout-bar-content" class="workout-bar-content"></div>
+  <!-- ============ MY WORKOUT BAR (hidden until something is added) ============ -->
+  <div id="workout-bar" class="workout-bar hidden">
+    <div class="container workout-bar-inner">
+      <div class="workout-bar-header" id="workout-bar-toggle" role="button" tabindex="0"
+        aria-controls="workout-bar-body" aria-label="Toggle workout list">
+        <div class="workout-bar-title-wrapper">
+          <span class="workout-bar-icon" aria-hidden="true">🏋️</span>
+          <input id="workout-name-input" type="text" value="My Workout" aria-label="Workout name"
+            spellcheck="false" maxlength="60">
+          <span id="workout-bar-count" data-count="0">(0)</span>
+        </div>
+        <span class="workout-bar-chevron" aria-hidden="true">▼</span>
+      </div>
 
-      <div id="workout-share-output" class="workout-share-output">
-        <button id="copy-share-btn" class="copy-share-btn" type="button">
-          Copy and share this workout with your friends
-        </button>
-        <p id="share-confirm" class="share-confirm hidden">Link copied to clipboard!</p>
+      <div id="workout-bar-body" class="workout-bar-body">
+        <!-- Single wrapper so the 0fr -> 1fr collapse animation applies to
+             all of the body at once (a grid only sizes the rows it declares). -->
+        <div class="workout-bar-panel">
+          <div id="workout-bar-content" class="workout-bar-content"></div>
+
+          <div id="workout-share-output" class="workout-share-output">
+            <button id="copy-share-btn" class="copy-share-btn btn btn-primary" type="button">
+              <span aria-hidden="true">🔗</span>
+              Copy and share this workout
+            </button>
+            <p id="share-confirm" class="share-confirm hidden" role="status">Link copied to clipboard!</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- How-To Modal (for added workouts) -->
-  <div id="howto-modal" class="howto-modal hidden">
+  <!-- ============ HOW-TO MODAL ============ -->
+  <div id="howto-modal" class="howto-modal hidden" role="dialog" aria-modal="true"
+    aria-labelledby="howto-modal-title">
     <div class="howto-modal-content">
-      <button
-        type="button"
-        id="howto-modal-close"
-        class="howto-modal-close"
-        aria-label="Close How-To"
-      >
+      <button type="button" id="howto-modal-close" class="howto-modal-close" aria-label="Close How-To">
         &times;
       </button>
       <h2 id="howto-modal-title"></h2>
@@ -55,21 +85,15 @@
     </div>
   </div>
 
-  <header>
-    <img id="hero-banner" alt="WebFit Main Banner" src="images/bannerimg.png">
-    <p id="banner-text">WebFit<br>Exercise</p>
-    <nav>
-      <a href="home.html">Home</a>
-      <a href="exercise.html">Exercise</a>
-      <a href="contact.html">Contact</a>
-    </nav>
-  </header>
-
-  <!-- Equipment Filter Modal -->
-  <div id="equipment-filter-modal" class="equipment-filter-modal hidden">
+  <!-- ============ EQUIPMENT FILTER MODAL ============ -->
+  <div id="equipment-filter-modal" class="equipment-filter-modal hidden" role="dialog" aria-modal="true"
+    aria-labelledby="equipment-filter-title">
     <div class="equipment-filter-content">
       <div class="equipment-filter-header">
-        <h2>Filter by Equipment</h2>
+        <div>
+          <h2 id="equipment-filter-title">Filter by Equipment</h2>
+          <p>Only show exercises you have the gear for.</p>
+        </div>
         <button type="button" id="equipment-filter-close" class="equipment-filter-close" aria-label="Close filter">
           &times;
         </button>
@@ -77,49 +101,77 @@
 
       <div class="equipment-filter-body">
         <div id="equipment-grid" class="equipment-grid">
-          <!-- Equipment checkboxes will be generated here -->
+          <!-- Equipment checkboxes are generated by exercise.js -->
         </div>
       </div>
 
       <div class="equipment-filter-footer">
         <span class="selected-count" id="filter-selected-count">0 selected</span>
         <div class="equipment-filter-actions">
-          <button type="button" id="clear-filters-btn" class="clear-filters-btn">Clear All</button>
-          <button type="button" id="apply-filters-btn" class="apply-filters-btn">Apply Filters</button>
+          <button type="button" id="clear-filters-btn" class="clear-filters-btn btn btn-ghost">Clear All</button>
+          <button type="button" id="apply-filters-btn" class="apply-filters-btn btn btn-primary">Apply Filters</button>
         </div>
       </div>
     </div>
   </div>
 
-  <main>
-    <div id="muscle-group-full">
-      <h1>Muscle Group Selector</h1>
-      <button id="equipment-filter-btn" class="equipment-filter-button">
-        <span class="filter-icon">⚙️</span>
-        <span class="filter-text">Equipment Filter</span>
-        <span class="filter-count">(0)</span>
-      </button>
-      
-      <!-- Active filter tags display -->
-      <div id="filter-tags-container" class="filter-tags-container"></div>
-      
-      <section id="muscle-groups-selector">
-        <button data-group="Legs">Legs</button>
-        <button data-group="Biceps">Biceps</button>
-        <button data-group="Triceps">Triceps</button>
-        <button data-group="Core">Core</button>
-        <button data-group="Back">Back</button>
-        <button data-group="Chest">Chest</button>
-        <button data-group="Shoulders">Shoulders</button>
-        <button data-group="Traps">Traps</button>
-      </section>
-    </div>
+  <main id="main">
+    <!-- ============ PAGE TOOLBAR ============ -->
+    <section class="builder-head">
+      <div class="container">
+        <p class="eyebrow">Workout builder</p>
+        <div class="builder-head-row">
+          <div>
+            <h1>Pick your muscle groups</h1>
+            <p class="lead">Tap a group to load its exercises. Tap it again to remove it.</p>
+          </div>
+          <button id="equipment-filter-btn" class="equipment-filter-button" type="button">
+            <span class="filter-icon" aria-hidden="true">⚙️</span>
+            <span class="filter-text">Equipment Filter</span>
+            <span class="filter-count">(0)</span>
+          </button>
+        </div>
 
-    <section id="exercise-results"></section>
+        <!-- Active filter tags render here -->
+        <div id="filter-tags-container" class="filter-tags-container"></div>
+
+        <section id="muscle-groups-selector" aria-label="Muscle groups">
+          <button type="button" data-group="Legs">Legs</button>
+          <button type="button" data-group="Biceps">Biceps</button>
+          <button type="button" data-group="Triceps">Triceps</button>
+          <button type="button" data-group="Core">Core</button>
+          <button type="button" data-group="Back">Back</button>
+          <button type="button" data-group="Chest">Chest</button>
+          <button type="button" data-group="Shoulders">Shoulders</button>
+          <button type="button" data-group="Traps">Traps</button>
+        </section>
+      </div>
+    </section>
+
+    <!-- ============ RESULTS ============ -->
+    <div class="container">
+      <section id="exercise-results" aria-live="polite" aria-busy="false"></section>
+
+      <!-- Shown until the first muscle group is chosen; exercise.js appends
+           its sections after this, so it stays put and is hidden by CSS
+           as soon as a section exists. -->
+      <div class="empty-state" id="exercise-empty-state">
+        <span class="empty-icon" aria-hidden="true">💪</span>
+        <h2>No muscle groups selected yet</h2>
+        <p>Choose one or more groups above and your exercises will appear here.</p>
+      </div>
+    </div>
   </main>
 
-  <footer>
-    <p>&copy; WebFit. All Rights Reserved.</p>
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; WebFit. All Rights Reserved.</p>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="home.html">Home</a>
+        <a href="exercise.html">Exercise</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+    </div>
   </footer>
 
   <script type="module">
@@ -127,11 +179,12 @@
     import { initExercisePage } from './js/exercise.js';
     import { initWorkoutForm } from './js/workout-form.js';
     import { initScrollToTop } from './js/modules/scrollToTop.js';
-    
+
     initNavigation();
     initExercisePage();
     initWorkoutForm();
     initScrollToTop();
   </script>
 </body>
+
 </html>

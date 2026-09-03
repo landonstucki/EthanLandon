@@ -1,8 +1,24 @@
+// Exercise page.
+//
+// All network access lives in ./modules/exerciseApi.js, which talks to the free
+// ExerciseDB API at https://oss.exercisedb.dev/api/v1. That module owns the
+// caching, cursor pagination and rate limiting; this file is just UI.
+
+import {
+  muscleGroups,
+  fetchExercisesForGroup,
+  fetchEquipmentList
+} from "./modules/exerciseApi.js";
+
+import {
+  equipmentList,
+  formatEquipmentName
+} from "./modules/equipmentFilter.js";
+
 // This is my global stash for exercise data.
-// - `cache` = responses I've already fetched by muscle so I don't spam the API.
-// - `allExercises` = everything I've pulled, organized by the big muscle groups (Legs, Biceps, etc.).
+// `allExercises` = everything I've pulled, organized by the big muscle groups
+// (Legs, Biceps, etc.). The per-muscle response cache lives in exerciseApi.js.
 const exerciseData = {
-  cache: {},
   allExercises: {}
 };
 
@@ -22,65 +38,12 @@ let closeFilterBtn;
 let buttons;
 let results;
 
-// Tiny helper so I can slow down the API calls a bit.
-// (This is me trying to be nice to the API.)
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-// These are the labels I'm using in the UI mapped to actual muscle names
-// that the ExerciseDB API understands. If I ever add new buttons, update here.
-const muscleGroups = {
-  Legs: [
-    "quadriceps", "quads", "hamstrings", "glutes", "calves", "soleus", "shins",
-    "inner thighs", "groin", "hip flexors", "abductors", "adductors"
-  ],
-  Biceps: ["biceps", "brachialis"],
-  Triceps: ["triceps"],
-  Core: ["abs", "abdominals", "lower abs", "obliques", "core", "serratus anterior", "hip flexors"],
-  Back: ["back", "upper back", "lower back", "latissimus dorsi", "lats", "rhomboids", "spine"],
-  Chest: ["chest", "upper chest", "pectorals"],
-  Shoulders: ["shoulders", "deltoids", "delts", "rear deltoids", "rotator cuff"],
-  Traps: ["traps", "trapezius", "levator scapulae", "sternocleidomastoid"]
-};
-
 // Just keeping track of what sections are currently visible.
 const loadedGroups = new Set();
 
-/**
- * Pulls exercises for a single muscle from the API.
- * Future me: this handles:
- *  - formatting the muscle name for the URL
- *  - basic error handling
- *  - caching so the same muscle isn't fetched over and over
- */
-async function fetchExercisesByMuscle(muscleName) {
-  const formatted = muscleName.toLowerCase().trim().replace(/\s+/g, "%20");
-  const url = `https://www.exercisedb.dev/api/v1/muscles/${formatted}/exercises?offset=0&limit=100&includeSecondary=false`;
-
-  // If I've already seen this muscle, just reuse the cached result.
-  if (exerciseData.cache[formatted]) {
-    return exerciseData.cache[formatted];
-  }
-
-  try {
-    const res = await fetch(url);
-    if (!res.ok) {
-      // If the API complains, just return an empty list and move on.
-      return [];
-    }
-
-    const json = await res.json();
-
-    // The API can respond in a couple of shapes.
-    // This line tries to gracefully handle both.
-    const exercises = json.success && json.data ? json.data : (Array.isArray(json) ? json : []);
-
-    exerciseData.cache[formatted] = exercises;
-    return exercises;
-  } catch (err) {
-    console.error(`Error fetching ${muscleName}:`, err);
-    return [];
-  }
-}
+// Bumped every time a group is toggled. A load that finishes after its group
+// was switched off (or switched back on) checks this and bails out.
+const loadTokens = {};
 
 /**
  * Builds the HTML string for one exercise card.
@@ -94,7 +57,7 @@ function createExerciseCard(exercise, muscleGroup, index) {
     ? exercise.targetMuscles.join(", ")
     : exercise.targetMuscles || "N/A";
 
-  const secondaryMuscles = Array.isArray(exercise.secondaryMuscles)
+  const secondaryMuscles = Array.isArray(exercise.secondaryMuscles) && exercise.secondaryMuscles.length
     ? exercise.secondaryMuscles.join(", ")
     : "None";
 
@@ -107,22 +70,22 @@ function createExerciseCard(exercise, muscleGroup, index) {
   return `
     <div class="exercise" data-index="${index}">
       <h3>${exercise.name || "Unnamed Exercise"}</h3>
-      ${gifUrl ? `<img src="${gifUrl}" alt="${exercise.name}" width="150">` : ""}
+      ${gifUrl ? `<img src="${gifUrl}" alt="${exercise.name}" width="150" loading="lazy">` : ""}
       <p><strong>Muscle Group:</strong> ${muscleGroup}</p>
       <p><strong>Target Muscle:</strong> ${targetMuscles}</p>
       <p><strong>Secondary Muscles:</strong> ${secondaryMuscles}</p>
       <p><strong>Equipment:</strong> ${equipment}</p>
       ${hasInstructions ? `
-        <button 
-          class="show-instructions" 
+        <button
+          class="show-instructions"
           data-exercise-id="${uniqueId}"
           type="button"
         >
           Show Instructions
         </button>
 
-        <button 
-          class="add-workout-btn" 
+        <button
+          class="add-workout-btn"
           data-exercise-name="${exercise.name || ""}"
           data-muscle-group="${muscleGroup}"
           data-exercise-gif="${gifUrl}"
@@ -139,21 +102,78 @@ function createExerciseCard(exercise, muscleGroup, index) {
   `;
 }
 
+/**
+ * Paints one muscle group's section.
+ *
+ * Exercises stream in a page at a time, so this gets called repeatedly while a
+ * group loads. Any instructions the user already opened are reopened after the
+ * repaint so the list doesn't fight them.
+ *
+ * @param {string} group - Muscle group name
+ * @param {Array} exercises - Exercises loaded for the group so far
+ * @param {boolean} isLoading - Whether more exercises are still on the way
+ */
+function renderGroupSection(group, exercises, isLoading) {
+  const groupSection = document.getElementById(`section-${group}`);
+  if (!groupSection) return;
+
+  // Remember which instruction panels are open before we blow away the markup.
+  const openInstructions = new Set(
+    Array.from(groupSection.querySelectorAll(".instructions"))
+      .filter(el => el.style.display === "block")
+      .map(el => el.id)
+  );
+
+  const filteredExercises = filterByEquipment(exercises);
+
+  const spinner = isLoading
+    ? `<div class="loading-indicator">
+         <div class="loading-spinner"></div>
+         <p>Loading ${group} exercises… (${filteredExercises.length} so far)</p>
+       </div>`
+    : "";
+
+  if (filteredExercises.length === 0) {
+    const emptyMessage = isLoading
+      ? ""
+      : `<p class="no-results-message">${
+        exercises.length === 0
+          ? "No exercises found."
+          : "No exercises found with selected equipment."
+      }</p>`;
+
+    groupSection.innerHTML = `<h2>${group}</h2>${spinner}${emptyMessage}`;
+    return;
+  }
+
+  groupSection.innerHTML = `
+    <h2>${group}</h2>
+    <div class="exercise-group">
+      ${filteredExercises.map((ex, index) => createExerciseCard(ex, group, index)).join("")}
+    </div>
+    ${spinner}
+  `;
+
+  // Put the user's open instruction panels back.
+  openInstructions.forEach(id => {
+    const panel = groupSection.querySelector(`#${CSS.escape(id)}`);
+    if (!panel) return;
+
+    panel.style.display = "block";
+    const btn = groupSection.querySelector(
+      `.show-instructions[data-exercise-id="${id.replace(/^instructions-/, "")}"]`
+    );
+    if (btn) btn.textContent = "Hide Instructions";
+  });
+}
+
 // ============================
 // EQUIPMENT FILTER FUNCTIONALITY
 // ============================
 
-const equipmentList = [
-  "stepmill machine", "elliptical machine", "trap bar", "tire", "stationary bike",
-  "wheel roller", "smith machine", "hammer", "skierg machine", "roller",
-  "resistance band", "bosu ball", "weighted", "olympic barbell", "kettlebell",
-  "upper body ergometer", "sled machine", "ez barbell", "dumbbell", "rope",
-  "barbell", "band", "stability ball", "medicine ball", "assisted",
-  "leverage machine", "cable", "body weight"
-];
-
-// Equipment list is available immediately
-const availableEquipment = [...equipmentList];
+// Seeded with the known equipment types so the modal renders instantly, then
+// refreshed from GET /equipments once the API answers.
+let availableEquipment = [...equipmentList];
 
 /**
  * Filter exercises by selected equipment
@@ -175,22 +195,13 @@ function filterByEquipment(exercises) {
 }
 
 /**
- * Format equipment name to Title Case
- */
-function formatEquipmentName(equipment) {
-  return equipment.split(' ').map(word =>
-    word.charAt(0).toUpperCase() + word.slice(1)
-  ).join(' ');
-}
-
-/**
  * Initialize equipment filter modal
  */
 // Debounce timer for filter changes
 let filterDebounceTimer = null;
 
 function initEquipmentFilter() {
-  const allEquipment = [...new Set(equipmentList)].sort();
+  const allEquipment = [...new Set(availableEquipment)].sort();
   equipmentGrid.innerHTML = '';
 
   allEquipment.forEach(equipment => {
@@ -201,6 +212,7 @@ function initEquipmentFilter() {
     checkbox.type = 'checkbox';
     checkbox.id = `eq-${equipment.replace(/\s+/g, '-')}`;
     checkbox.value = equipment;
+    checkbox.checked = selectedEquipment.has(equipment);
 
     const label = document.createElement('label');
     label.htmlFor = checkbox.id;
@@ -232,10 +244,28 @@ function initEquipmentFilter() {
       }, 300);
     });
 
-    checkbox.addEventListener('change', updateSelectedCount);
-
     equipmentGrid.appendChild(item);
   });
+}
+
+/**
+ * Pull the live equipment taxonomy and rebuild the modal if it differs from
+ * the list we shipped with.
+ */
+async function refreshEquipmentFromApi() {
+  const fetched = await fetchEquipmentList();
+  if (!fetched.length) return;
+
+  const next = fetched.map(eq => eq.toLowerCase().trim()).filter(Boolean);
+  const changed =
+    next.length !== availableEquipment.length ||
+    next.some(eq => !availableEquipment.includes(eq));
+
+  if (!changed) return;
+
+  availableEquipment = next;
+  initEquipmentFilter();
+  updateSelectedCount();
 }
 
 /**
@@ -316,40 +346,10 @@ function renderFilterTags() {
  */
 function reapplyFilters() {
   loadedGroups.forEach(group => {
-    const groupSection = document.getElementById(`section-${group}`);
-    if (!groupSection) return;
-
     const exercises = exerciseData.allExercises[group];
     if (!exercises) return;
 
-    const filteredExercises = filterByEquipment(exercises);
-
-    if (filteredExercises.length === 0) {
-      groupSection.innerHTML = `<h2>${group}</h2><p class="no-results-message">No exercises found with selected equipment.</p>`;
-      return;
-    }
-
-    groupSection.innerHTML = `
-      <h2>${group}</h2>
-      <div class="exercise-group">
-        ${filteredExercises.map((ex, index) => createExerciseCard(ex, group, index)).join("")}
-      </div>
-    `;
-
-    // Re-attach instruction toggle listeners
-    groupSection.querySelectorAll(".show-instructions").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const exerciseId = btn.dataset.exerciseId;
-        if (!exerciseId) return;
-
-        const instructionsDiv = document.getElementById(`instructions-${exerciseId}`);
-        if (!instructionsDiv) return;
-
-        const showing = instructionsDiv.style.display === "block";
-        instructionsDiv.style.display = showing ? "none" : "block";
-        btn.textContent = showing ? "Show Instructions" : "Hide Instructions";
-      });
-    });
+    renderGroupSection(group, exercises, false);
   });
 }
 
@@ -377,17 +377,39 @@ export function initExercisePage() {
     console.error("exercise-results element not found");
   }
 
+  // One delegated listener for every Show/Hide Instructions button, so the
+  // repaints that happen while a group streams in can't lose their handlers.
+  if (results) {
+    results.addEventListener("click", (e) => {
+      const btn = e.target.closest(".show-instructions");
+      if (!btn) return;
+
+      const exerciseId = btn.dataset.exerciseId;
+      if (!exerciseId) return;
+
+      const instructionsDiv = document.getElementById(`instructions-${exerciseId}`);
+      if (!instructionsDiv) return;
+
+      const showing = instructionsDiv.style.display === "block";
+      instructionsDiv.style.display = showing ? "none" : "block";
+      btn.textContent = showing ? "Show Instructions" : "Hide Instructions";
+    });
+  }
+
   // Setup muscle group button listeners
   buttons.forEach((button) => {
     button.addEventListener("click", async () => {
       if (!results) return;
 
       const group = button.dataset.group;
-      const muscles = muscleGroups[group];
-      if (!muscles) return;
+      if (!muscleGroups[group]) return;
 
       // Visual toggle for the button itself so I can see what's active.
       button.classList.toggle("clicked");
+
+      // Every toggle invalidates whatever load was in flight for this group.
+      const token = (loadTokens[group] || 0) + 1;
+      loadTokens[group] = token;
 
       // If I'm turning a group off, kill its entire section and clean up state.
       if (!button.classList.contains("clicked")) {
@@ -407,69 +429,27 @@ export function initExercisePage() {
         <h2>${group}</h2>
         <div class="loading-indicator">
           <div class="loading-spinner"></div>
-          <p>Loading ${group} exercises...</p>
+          <p>Loading ${group} exercises…</p>
         </div>
       `;
       results.appendChild(groupSection);
 
-      const allExercises = [];
+      // The API hands back 25 exercises per request, so render each page as it
+      // lands instead of making the user stare at a spinner for the whole set.
+      const unique = await fetchExercisesForGroup(group, (partial) => {
+        if (loadTokens[group] !== token) return;
 
-      // For each muscle under this group, fetch its exercises.
-      // This will probably pull duplicates; I de-dupe later.
-      for (const muscle of muscles) {
-        const exercises = await fetchExercisesByMuscle(muscle);
-        if (exercises && exercises.length > 0) {
-          allExercises.push(...exercises);
-        }
-        // Friendly pause so I don't hammer the API with 10 requests instantly.
-        await delay(300);
-      }
+        exerciseData.allExercises[group] = partial;
+        renderGroupSection(group, partial, true);
+      });
 
-      // Here I'm deduping exercises. The same move might appear under multiple
-      // muscles, so I use this combo key to treat those as the same.
-      const key = (ex) =>
-        `${ex.exerciseId || ex.name}-${Array.isArray(ex.equipments) ? ex.equipments.join(',') : ex.equipments || 'none'}`;
-
-      const unique = Array.from(new Map(allExercises.map(ex => [key(ex), ex])).values());
-
-      if (unique.length === 0) {
-        groupSection.innerHTML = `<h2>${group}</h2><p class="no-results-message">No exercises found.</p>`;
-        return;
-      }
+      // The group was toggled again while we were loading - drop this result.
+      if (loadTokens[group] !== token) return;
 
       // Keeping around the cleaned-up list in case I want it later.
       exerciseData.allExercises[group] = unique;
 
-      // Apply equipment filter if active
-      const filteredExercises = filterByEquipment(unique);
-
-      if (filteredExercises.length === 0) {
-        groupSection.innerHTML = `<h2>${group}</h2><p class="no-results-message">No exercises found with selected equipment.</p>`;
-        return;
-      }
-
-      // Replace the "Loading..." message with the actual cards.
-      groupSection.innerHTML = `
-        <h2>${group}</h2>
-        <div class="exercise-group">
-          ${filteredExercises.map((ex, index) => createExerciseCard(ex, group, index)).join("")}
-        </div>
-      `;
-
-      // Hook up the Show/Hide Instructions buttons inside this group.
-      groupSection.querySelectorAll(".show-instructions").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const exerciseId = btn.dataset.exerciseId;
-          if (!exerciseId) return;
-
-          const instructionsDiv = document.getElementById(`instructions-${exerciseId}`);
-          if (!instructionsDiv) return;
-
-          const showing = instructionsDiv.style.display === "block";
-          instructionsDiv.style.display = showing ? "none" : "block";
-          btn.textContent = showing ? "Show Instructions" : "Hide Instructions";
-        });
-      });
+      renderGroupSection(group, unique, false);
     });
   });
 
@@ -529,4 +509,7 @@ export function initExercisePage() {
   // Initialize equipment filter AFTER DOM elements are queried
   initEquipmentFilter();
   updateFilterButton();
+
+  // Keep the equipment list honest against whatever the API currently reports.
+  refreshEquipmentFromApi();
 }
